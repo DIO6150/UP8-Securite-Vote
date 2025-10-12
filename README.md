@@ -4,6 +4,12 @@ Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Pod
 
 # protocole
 
+## init
+Serveur -> Lit un fichier avec les informations, vote, date, candidat
+Serveur -> ouvert
+
+## vote
+
 Client -> ce connect au serveur, preuve que c'est un votant et non un inconnu
 Serveur -> Accepte ou non si inscript sur les listes de vote et envoie si votant les candidats en public ou chiffré ?
 Client -> envoie ou non ses votes : 1 chiffrés randomisés par candidats, comment vérifier qu'il vote bien qu'une fois et non pour plusieurs candidats ?
