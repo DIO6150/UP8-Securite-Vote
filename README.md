@@ -3,8 +3,9 @@ Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Pod
 
 
 # protocole
-Client -> ce connect au serveur
-Serveur -> Accepte ou non si inscript sur les listes de vote et envoie les candidats en public ou chiffré ?
+
+Client -> ce connect au serveur, preuve que c'est un votant et non un inconnu
+Serveur -> Accepte ou non si inscript sur les listes de vote et envoie si votant les candidats en public ou chiffré ?
 Client -> envoie ou non ses votes : 1 chiffrés randomisés par candidats, comment vérifier qu'il vote bien qu'une fois et non pour plusieurs candidats ?
 Serveur -> jusqu'à X temps, reste a recevoir les votes puis clos les votes et envoie au client la fermeture des votes
 Client -> reçois la fermeture des votes et donc ne peux plus modifier et attends le résultat
