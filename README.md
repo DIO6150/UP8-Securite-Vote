@@ -1,7 +1,7 @@
 Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin
 
 
-# protocole
+# Protocole
 
 ## Init
 Serveur -> Lit un fichier avec les informations, vote, date, candidat  
