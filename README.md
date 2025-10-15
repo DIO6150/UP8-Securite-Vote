@@ -22,5 +22,5 @@ Serveur -> envoie les gagnants en signer
 Client -> reçois et vérifier la signature  
 
 # Informations générales
-Langage python  
-Interface web par nikolas podevin  
+Langage choisi :  Python  
+Interface web par Nikolas Podevin
