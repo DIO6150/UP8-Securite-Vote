@@ -1,20 +1,5 @@
-      ________ ++     ________
-       /VVVVVVVV\++++  /VVVVVVVV\
-       \VVVVVVVV/++++++\VVVVVVVV/
-        |VVVVVV|++++++++/VVVVV/'
-        |VVVVVV|++++++/VVVVV/'
-       +|VVVVVV|++++/VVVVV/'+
-     +++|VVVVVV|++/VVVVV/'+++++
-   +++++|VVVVVV|/VVV___++++++++++
-     +++|VVVVVVVVVV/##/ +_+_+_+_
-       +|VVVVVVVVV___ +/#_#,#_#,\
-        |VVVVVVV//##/+/#/+/#/'/#/
-        |VVVVV/'+/#/+/#/+/#/ /#/
-        |VVV/'++/#/+/#/ /#/ /#/
-        'V/'  /##//##//##//###/
-                 ++ 
-                                                                                                                
 
+                                                                                                                
 
 Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin
 
