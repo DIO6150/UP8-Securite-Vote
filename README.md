@@ -1,4 +1,4 @@
-#**Bienvenue sur notre projet de système de vote chiffré et sécurisé**
+# **Bienvenue sur notre projet de système de vote chiffré et sécurisé**
 
 Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin
 
