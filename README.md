@@ -1,9 +1,4 @@
-██    ██  ██████  ████████ ███████ 
-██    ██ ██    ██    ██    ██      
-██    ██ ██    ██    ██    █████   
- ██  ██  ██    ██    ██    ██      
-  ████    ██████     ██    ███████ 
-                                                                                                                                               
+# Bienvenue sur notre projet de système de vote chiffré et sécurisé
 
 Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin
 
@@ -29,5 +24,5 @@ Serveur -> envoie les gagnants en signer
 Client -> reçois et vérifier la signature  
 
 # Informations générales
-Langage choisi :  Python  
+Langage choisi :  Python (Client) | C++ (Serveur)
 Interface web par Nikolas Podevin
