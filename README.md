@@ -1,6 +1,8 @@
+
 # **Bienvenue sur notre projet de système de vote chiffré et sécurisé**
 
 __*Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin*__
+
 
 
 # Protocole
@@ -9,7 +11,8 @@ __*Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas 
 Serveur -> Lit un fichier avec les informations, vote, date, candidat  
 Serveur -> ouvert  
 
-## Système de vote
+
+## Vote
 
 Client -> ce connect au serveur, preuve que c'est un votant et non un inconnu  
 Serveur -> Accepte ou non si inscript sur les listes de vote et envoie si votant les candidats en public ou chiffré ?  
@@ -26,3 +29,44 @@ Client -> reçois et vérifier la signature
 # Informations générales
 Langage choisi :  Python (Client) | C++ (Serveur)
 Interface web par Nikolas Podevin
+
+# Commandes
+
+## Client
+
+### Login
+
+
+// TODO : peut etre le faire en auto parce que c'est une communication inutile demander
+#### 1st Pass
+```
+clt: ASK_KEY
+
+srv: RETURN O0 <server-public-key>
+```
+
+#### 2nd Pass
+```
+clt: LOGIN <id> <encrypted-pwd> <client-public-key> <pwd-sha256>
+
+srv: RETURN O0				// OK, client connecté
+
+srv: RETURN E0				// erreur, 
+```
+
+// TODO: Demander si on doit renvoyer la clé lors du vote
+### Envoi d'un vote
+```
+clt: VOTE <encrypted-candidate_1> <encrypted-candidate_2> <encrypted-candidate_3> ... <encrypted-candidate_n>
+
+srv: RETURN O0				// OK, vote enregistré
+srv: RETURN O1				// OK, vote modifié
+srv: RETURN E0				// erreur, pas assez de crypté pour le nombre de candidats
+srv: RETURN E1				// erreur, trop de crypté pour le nombre de candidats
+srv: RETURN E2				// erreur, cryptés invalides (somehow)
+srv: RETURN E3				// erreur, client non connecté
+```
+
+// TODO: est ce que le serveur renvoi les candidats en cryptés
+
+## Server
