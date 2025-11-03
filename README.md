@@ -171,3 +171,9 @@ Le mot de passe est invalide
 ___
 [¹] D'abord le message du client et ensuite le hash du message pour s'assurer de son authenticité.
 Si l'authenticité du message ne peut être prouvée, la connection se ferme automatiquement.
+=======
+Langage choisi :  Python (Client) | C++ (Serveur)  
+Chiffrement par Léo Gagey (python c++)  
+Server (C++ par Mael Eouzan, Neil Belhadj  
+Client partie réseau (python) par Noé Choplin  
+Tkinter par Nikolas Podevin  
