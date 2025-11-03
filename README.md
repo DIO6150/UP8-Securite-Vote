@@ -28,7 +28,11 @@ Client -> reçois et vérifier la signature
 Langage choisi :  Python (Client) | C++ (Serveur)
 Interface web par Nikolas Podevin
 
+
+**ATTENTION LES COMMANDES QUI SUIVENT NE SONT PAS VALIDES**
 # Commandes
+
+__Note: Chaque commande sera chiffrée par RSA__
 
 ## Client
 
@@ -68,3 +72,102 @@ srv: RETURN E3				// erreur, client non connecté
 // TODO: est ce que le serveur renvoi les candidats en cryptés
 
 ## Server
+
+ON SIGNE AVEC RSA PAS SHA 256 RAAAAAAHHHHH
+on peut renvoyer somme par ligne et par colonne des bulletins pour les vérifications
+
+
+Client dit en clair au serveur: "je veux voter"
+Le serveur répond sa clef publique
+Le client chiffre sa clef publique avec la clef publique du serveur
+le serveur déchiffre avec sa clef privée
+paf échange de clefs
+
+# Protocole
+
+## Réponse du serveur
+
+Réponse typique du serveur:
+```
+RETURN <DATA_TYPE> <command> <data>
+```
+- Où ```DATA_TYPE``` indique si le type de donnée que le serveur va envoyer
+- Où ```command``` est le nom de la commande du client
+- Où ```data``` est la réponse du serveur
+
+### Data
+
+#### Type de Données
+
+- ```CODE```: code d'erreur
+- ```INT8```: int sur 8-bits
+- ```INT16```: int sur 16-bits
+- ```INT32```: int sur 32-bits
+- ```INT64```: int sur 64-bits
+- ... (à déterminer au fur et à mesure)
+
+##### Erreurs
+
+- ```E0``` : 
+- ```E1``` : 
+- ```E2``` : 
+- ```E3``` : 
+- ```E4``` : 
+- ```E5``` : 
+- ```E6``` : 
+- ```E7``` : 
+
+##### Oks
+
+- ```O0``` : 
+- ```O1``` : 
+- ```O2``` : 
+- ```O3``` : 
+- ```O4``` : 
+- ```O5``` : 
+- ```O6``` : 
+- ```O7``` : 
+
+## Connection
+
+### Échange de clefs
+
+Au moment où le client établi une connexion avec le serveur :
+- Le serveur envoie sa clef publique.
+- Le client chiffre sa clef publique avec la clef publique du serveur et l'envoie
+
+À partir de maintenant, toutes les communications sont chiffrées avec RSA¹
+
+### Identification
+
+#### Client
+```
+clt: LOGIN <username> <hashed_pwd>
+```
+
+___
+#### Serveur
+
+```
+RETURN CODE LOGIN O0
+```
+L'utilisateur s'est identifié avec succès et est désormais en capacité de voter ou de changer son vote.
+___
+```
+RETURN CODE LOGIN E1
+```
+Le nom d'utilisateur est invalide
+___
+```
+RETURN CODE LOGIN E2
+```
+Le mot de passe est invalide
+
+### Vote
+
+#### Client
+```
+```
+___
+[¹] D'abord le message du client et ensuite le hash du message pour s'assurer de son authenticité.
+Si l'authenticité du message ne peut être prouvée, la connection se ferme automatiquement.
