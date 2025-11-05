@@ -1,1 +1,1 @@
-g++ *.cpp -Iheaders -o3 -o server
+g++ *.cpp -Iheaders -o3 -o server.out

@@ -1,22 +1,68 @@
 
-#include "headers/server.hpp"
-#include "headers/utils.hpp"
+#include <utils.hpp>
+#include <server_interface.hpp>
 
 #include <algorithm>
 #include <ctime>
 #include <sstream>
 
+using BigInt = __uint128_t;
 
-struct Properties {
-	std::string user_name;
-	
-	Properties () : user_name {} {
-		
+enum class ConnectionState {
+	NONE,
+	KNOWN_PUB_KEY,
+	LOGIN
+};
+
+struct Client {
+	time_t	last_activity;
+	bool	is_admin;
+	BigInt	pub_key;
+
+	Client () : last_activity (-1), is_admin (false), pub_key (0) {
+
 	}
 };
 
+class ServerHandler : public IHandler {
+public:
+	ServerHandler () {
 
-// TODO : replace all perror with fprintf
+	}
+
+private:
+	void OnRequest (Server & server, int client_socket, char * request) override {
+		
+	}
+
+	void OnUpdate (Server & server, int client_socket) override {
+		time_t timestamp;
+		Client & client = m_clients.at (client_socket);
+
+
+		time (&timestamp);
+		client.last_activity = timestamp;
+	}
+
+	void OnConnect (Server & server, int client_socket) override {
+		m_clients.insert ({client_socket, Client {}});
+
+		server.Send (client_socket, "Hello World");
+		Log ("Client #1# connected.", client_socket);
+
+	}
+
+	void OnDisconnect (Server & server, int client_socket) override {
+		m_clients.erase (client_socket);
+
+		Log ("Client #1# disconnected.", client_socket);
+	}
+
+	BigInt pub_key;
+	BigInt prv_key;
+
+	std::unordered_map<int, Client> m_clients;
+};
 
 int main (int argc, char **argv)
 {
@@ -25,32 +71,8 @@ int main (int argc, char **argv)
 	
 	if (argc == 2) port = argv [1];
 	else port = (char *) default_port;
-	
-	Server<Properties> server {port};
-	#define COMMANDS_PARAM std::vector<std::string> args, Client<Properties> & client, Server<Properties> * server
-	
-	server.SetConnectionCommand ([] (COMMANDS_PARAM) {
-		server->Log ("Client {C:GOLD}#1#{} joined", client.GetID ());
-		server->Send (client, "Salut");
-	});
 
-	server.SetDisconnectionCommand ([] (COMMANDS_PARAM) {
-		server->Log ("Client {C:GOLD}#1#{} disconnected", client.GetID ());
-		server->Send (client, "Au revoir");
-	});
-
-	server.SetEchoCommand ([] (COMMANDS_PARAM) {
-		if (client.GetCommandStatus () == CommandStatus::VALID) server->Log ("Client {C:GOLD}#1#{} issued the command: {C:GREEN}#2#{}", client.GetID (), args[0]);
-	});
-
-	server.SetUnknownCommand ([] (COMMANDS_PARAM) {
-		server->Log ("{C:RED}Error: Command {C:GREEN}#1#{C:RED} issued by Client {C:GOLD}#2#{C:RED} does not exist.", args[0], client.GetID ());
-	});
-
-	server.SetCommand ("STOP", [](COMMANDS_PARAM) {
-		server->Broadcast ("Server shutting down\n");
-		server->Stop ();
-	});
+	Server server {new ServerHandler {}};
 
 	server.Start ();
 }
