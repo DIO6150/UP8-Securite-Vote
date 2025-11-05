@@ -2,8 +2,6 @@
 
 __*Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin*__
 
-
-
 # Protocole
 
 ## Init
@@ -27,61 +25,6 @@ Client -> reçois et vérifier la signature
 # Informations générales
 Langage choisi :  Python (Client) | C++ (Serveur)
 Interface web par Nikolas Podevin
-
-
-**ATTENTION LES COMMANDES QUI SUIVENT NE SONT PAS VALIDES**
-# Commandes
-
-__Note: Chaque commande sera chiffrée par RSA__
-
-## Client
-
-### Login
-
-
-// TODO : peut etre le faire en auto parce que c'est une communication inutile demander
-#### 1st Pass
-```
-clt: ASK_KEY
-
-srv: RETURN O0 <server-public-key>
-```
-
-#### 2nd Pass
-```
-clt: LOGIN <id> <encrypted-pwd> <client-public-key> <pwd-sha256>
-
-srv: RETURN O0				// OK, client connecté
-
-srv: RETURN E0				// erreur, 
-```
-
-// TODO: Demander si on doit renvoyer la clé lors du vote
-### Envoi d'un vote
-```
-clt: VOTE <encrypted-candidate_1> <encrypted-candidate_2> <encrypted-candidate_3> ... <encrypted-candidate_n>
-
-srv: RETURN O0				// OK, vote enregistré
-srv: RETURN O1				// OK, vote modifié
-srv: RETURN E0				// erreur, pas assez de crypté pour le nombre de candidats
-srv: RETURN E1				// erreur, trop de crypté pour le nombre de candidats
-srv: RETURN E2				// erreur, cryptés invalides (somehow)
-srv: RETURN E3				// erreur, client non connecté
-```
-
-// TODO: est ce que le serveur renvoi les candidats en cryptés
-
-## Server
-
-ON SIGNE AVEC RSA PAS SHA 256 RAAAAAAHHHHH
-on peut renvoyer somme par ligne et par colonne des bulletins pour les vérifications
-
-
-Client dit en clair au serveur: "je veux voter"
-Le serveur répond sa clef publique
-Le client chiffre sa clef publique avec la clef publique du serveur
-le serveur déchiffre avec sa clef privée
-paf échange de clefs
 
 # Protocole
 
