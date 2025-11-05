@@ -1,9 +1,26 @@
 #pragma once
 
-#include <string>
+#include <arpa/inet.h>
+#include <errno.h>
+#include <memory.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <poll.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <algorithm>
 #include <cctype>
+#include <iostream>
 #include <locale>
+#include <string>
+#include <vector>
+
+#include <string_pretty.hpp>
 
 
 /*
@@ -94,4 +111,55 @@ inline std::vector<std::string> split (std::string s, const std::string& delimit
 	if (t != "") tokens.push_back (t);
 
 	return (tokens);
+}
+
+template<class ... Args>
+void Log (const std::string & message, Args ... args) {
+	std::cerr << "[SERVER] " << StrPretty (message, args ...) << "\n";
+}
+
+inline void setup_server (const char * port, int & server) {
+	struct addrinfo 		hints, *gai, *ai;
+	int				err;
+	int				yes;
+
+	yes = 1;
+	
+	bzero (&hints, sizeof (hints));
+
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	if ((err = getaddrinfo (NULL, port, &hints, &gai)) < 0) {
+		Log ("{C:RED}ERROR : getaddrinfo {C:MAGENTA}#1#{}", gai_strerror (err));
+		exit (EXIT_FAILURE);
+	}
+
+	for (ai = gai; ai != NULL; ai = ai->ai_next) {
+		if ((server = socket (ai->ai_family, ai->ai_socktype, ai->ai_protocol)) < 0) {
+			Log ("{C:RED}ERROR : socket{}");
+			continue;
+		}
+		
+		if (setsockopt (server, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof (int)) < 0) {
+			Log ("{C:RED}ERROR : setsockopt{}");
+			exit (EXIT_FAILURE);
+		}
+
+		if (bind (server, ai->ai_addr, ai->ai_addrlen) < 0) {
+			close (server);
+			Log ("{C:RED}ERROR : bind{}");
+			continue;
+		}
+
+		break;
+	}
+
+	freeaddrinfo (gai);
+
+	if (ai == NULL) {
+		Log ("Failed to bind server");
+		exit (EXIT_FAILURE);
+	}
 }

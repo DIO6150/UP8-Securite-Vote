@@ -85,6 +85,12 @@ paf échange de clefs
 
 # Protocole
 
+## Format de messages
+
+Chaque échange entre le serveur et clients se fait par le biais de ```message```s qui constitue:
+- un ```header``` de 32 bits qui donne la taille du ```body``` (envoyé en Big Endian)
+- un ```body``` qui contient les données que le serveur et le client veulent s'échanger.
+
 ## Réponse du serveur
 
 Réponse typique du serveur:
@@ -108,19 +114,19 @@ RETURN <DATA_TYPE> <command> <data>
 
 ##### Erreurs
 
-- ```E0``` : 
-- ```E1``` : 
-- ```E2``` : 
-- ```E3``` : 
-- ```E4``` : 
-- ```E5``` : 
-- ```E6``` : 
+- ```E0``` : Commande non reconnue
+- ```E1``` : Utilisateur non identifié
+- ```E2``` : Nom d'utilisateur invalide
+- ```E3``` : Mot de passe invalide
+- ```E4``` : Nombre de chiffrés invalides
+- ```E5``` : Chiffré invalide
+- ```E6``` : Client n'est pas administrateur
 - ```E7``` : 
 
 ##### Oks
 
-- ```O0``` : 
-- ```O1``` : 
+- ```O0``` : Utilisateur identifié avec succès
+- ```O1``` : Vote prit en compte
 - ```O2``` : 
 - ```O3``` : 
 - ```O4``` : 
@@ -142,32 +148,75 @@ Au moment où le client établi une connexion avec le serveur :
 
 #### Client
 ```
-clt: LOGIN <username> <hashed_pwd>
+clt: LOGIN <username> <pwd>
 ```
 
 ___
 #### Serveur
 
 ```
-RETURN CODE LOGIN O0
+srv: RETURN CODE LOGIN O0
 ```
 L'utilisateur s'est identifié avec succès et est désormais en capacité de voter ou de changer son vote.
 ___
 ```
-RETURN CODE LOGIN E1
+srv: RETURN CODE LOGIN E2
 ```
 Le nom d'utilisateur est invalide
 ___
 ```
-RETURN CODE LOGIN E2
+srv: RETURN CODE LOGIN E3
 ```
 Le mot de passe est invalide
 
 ### Vote
 
 #### Client
+
 ```
+clt: VOTE <candidate_0> <candidate_1> <candidate_2> ... <candidate_n>
 ```
+
+Chaque ```candidate_n``` est un chiffré homomorphe de pallier de 0 ou 1.
+
+**La procédure n'est pas encore indiquée pour manque de recherche mais le serveur doit demander une ZKP au client**
+
+#### Server
+
+```
+srv: RETURN CODE VOTE O1
+```
+
+Le vote a été pris en compte. Que ce soit une modification ou un premier vote.
+
 ___
+```
+srv: RETURN CODE VOTE E4
+```
+
+Le nombre de  chiffrés est invalide
+___
+```
+srv: RETURN CODE VOTE E5
+```
+
+Un des chiffrés est invalide (est ce que c'est possible de le déterminer à ce stade même ?)
+
+### Commandes Administrateurs
+
+```
+a-clt: STOP
+```
+Arrête abruptement le serveur.
+
+```
+a-clt: VEND
+```
+Arrête le vote.
+
+```
+srv: RETURN CODE VEND E6
+```
+
 [¹] D'abord le message du client et ensuite le hash du message pour s'assurer de son authenticité.
 Si l'authenticité du message ne peut être prouvée, la connection se ferme automatiquement.
