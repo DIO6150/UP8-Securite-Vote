@@ -14,7 +14,7 @@ MKDIR = mkdir
 CHMOD = chmod
 CP = rsync -R
 # déclaration des options du compilateur
-CFLAGS = -Wall -Wextra -03 
+CFLAGS = -Wall -Wextra -O3 
 CXXFLAGS = -std=c++20
 CPPFLAGS = -I.
 LDFLAGS = -lm

@@ -27,7 +27,6 @@ HEADERS = big_int.hpp
 SOURCES = main.cpp
 OBJ1 = $(SOURCES:.cpp=.o)
 OBJ = $(OBJ1:.c=.o)
-EXTRAFILES = $(wildcard shaders/*.?s images/* audio/*) $(shell find models -type f) Kawaii.otf
 DISTFILES = $(SOURCES) Makefile $(HEADERS) $(EXTRAFILES)
 # Traitements automatiques pour ajout de chemins et options (ne pas modifier)
 ifneq (,$(shell ls -d /usr/local/include 2>/dev/null | tail -n 1))
@@ -51,14 +50,9 @@ endif
 ifeq ($(shell uname),Darwin)
 	MACOSX_DEPLOYMENT_TARGET = 10.8
         CFLAGS += -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
-        CXXFLAGS += -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
-        LDFLAGS += -framework OpenGL -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
 else
         LDFLAGS += -lGL
 endif
-CFLAGS += $(shell sdl2-config --cflags)
-CPPFLAGS += $(shell sdl2-config --cflags)
-LDFLAGS  += -lGL4Dummies $(shell sdl2-config --libs) -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lassimp
 all: $(PROGNAME)
 $(PROGNAME): $(OBJ)
 	$(CXX) $(OBJ) $(LDFLAGS) -o $(PROGNAME)
@@ -81,4 +75,3 @@ distdir: $(DISTFILES)
 	$(CP) $(DISTFILES) $(distdir)
 clean:
 	@$(RM) -r $(PROGNAME) $(OBJ) *~ $(distdir).tgz $(distdir).zip gmon.out	\
-	  core.* shaders/*~
