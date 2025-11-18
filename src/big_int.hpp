@@ -24,7 +24,6 @@
 #include <cmath>
 #include <cstdlib>
 
-// Boost pour les big integers
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/multiprecision/cpp_dec_float.hpp>
 
