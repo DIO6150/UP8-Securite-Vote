@@ -2,8 +2,6 @@
 
 __*Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin*__
 
-
-
 # Protocole
 
 ## Init
@@ -28,43 +26,140 @@ Client -> reçois et vérifier la signature
 Langage choisi :  Python (Client) | C++ (Serveur)
 Interface web par Nikolas Podevin
 
-# Commandes
+# Protocole
 
-## Client
+## Format de messages
 
-### Login
+Chaque échange entre le serveur et clients se fait par le biais de ```message```s qui constitue:
+- un ```header``` de 32 bits qui donne la taille du ```body``` (envoyé en Big Endian)
+- un ```body``` qui contient les données que le serveur et le client veulent s'échanger.
 
+## Réponse du serveur
 
-// TODO : peut etre le faire en auto parce que c'est une communication inutile demander
-#### 1st Pass
+Réponse typique du serveur:
 ```
-clt: ASK_KEY
+RETURN <DATA_TYPE> <command> <data>
+```
+- Où ```DATA_TYPE``` indique si le type de donnée que le serveur va envoyer
+- Où ```command``` est le nom de la commande du client
+- Où ```data``` est la réponse du serveur
 
-srv: RETURN O0 <server-public-key>
+### Data
+
+#### Type de Données
+
+- ```CODE```: code d'erreur
+- ```INT8```: int sur 8-bits
+- ```INT16```: int sur 16-bits
+- ```INT32```: int sur 32-bits
+- ```INT64```: int sur 64-bits
+- ... (à déterminer au fur et à mesure)
+
+##### Erreurs
+
+- ```E0``` : Commande non reconnue
+- ```E1``` : Utilisateur non identifié
+- ```E2``` : Nom d'utilisateur invalide
+- ```E3``` : Mot de passe invalide
+- ```E4``` : Nombre de chiffrés invalides
+- ```E5``` : Chiffré invalide
+- ```E6``` : Client n'est pas administrateur
+- ```E7``` : 
+
+##### Oks
+
+- ```O0``` : Utilisateur identifié avec succès
+- ```O1``` : Vote prit en compte
+- ```O2``` : 
+- ```O3``` : 
+- ```O4``` : 
+- ```O5``` : 
+- ```O6``` : 
+- ```O7``` : 
+
+## Connection
+
+### Échange de clefs
+
+Au moment où le client établi une connexion avec le serveur :
+- Le serveur envoie sa clef publique.
+- Le client chiffre sa clef publique avec la clef publique du serveur et l'envoie
+
+À partir de maintenant, toutes les communications sont chiffrées avec RSA¹
+
+### Identification
+
+#### Client
+```
+clt: LOGIN <username> <pwd>
 ```
 
-#### 2nd Pass
+___
+#### Serveur
+
 ```
-clt: LOGIN <id> <encrypted-pwd> <client-public-key> <pwd-sha256>
+srv: RETURN CODE LOGIN O0
+```
+L'utilisateur s'est identifié avec succès et est désormais en capacité de voter ou de changer son vote.
+___
+```
+srv: RETURN CODE LOGIN E2
+```
+Le nom d'utilisateur est invalide
+___
+```
+srv: RETURN CODE LOGIN E3
+```
+Le mot de passe est invalide
 
-srv: RETURN O0				// OK, client connecté
+### Vote
 
-srv: RETURN E0				// erreur, 
+#### Client
+
+```
+clt: VOTE <candidate_0> <candidate_1> <candidate_2> ... <candidate_n>
 ```
 
-// TODO: Demander si on doit renvoyer la clé lors du vote
-### Envoi d'un vote
-```
-clt: VOTE <encrypted-candidate_1> <encrypted-candidate_2> <encrypted-candidate_3> ... <encrypted-candidate_n>
+Chaque ```candidate_n``` est un chiffré homomorphe de pallier de 0 ou 1.
 
-srv: RETURN O0				// OK, vote enregistré
-srv: RETURN O1				// OK, vote modifié
-srv: RETURN E0				// erreur, pas assez de crypté pour le nombre de candidats
-srv: RETURN E1				// erreur, trop de crypté pour le nombre de candidats
-srv: RETURN E2				// erreur, cryptés invalides (somehow)
-srv: RETURN E3				// erreur, client non connecté
+**La procédure n'est pas encore indiquée pour manque de recherche mais le serveur doit demander une ZKP au client**
+
+#### Server
+
+```
+srv: RETURN CODE VOTE O1
 ```
 
-// TODO: est ce que le serveur renvoi les candidats en cryptés
+Le vote a été pris en compte. Que ce soit une modification ou un premier vote.
 
-## Server
+___
+```
+srv: RETURN CODE VOTE E4
+```
+
+Le nombre de  chiffrés est invalide
+___
+```
+srv: RETURN CODE VOTE E5
+```
+
+Un des chiffrés est invalide (est ce que c'est possible de le déterminer à ce stade même ?)
+
+### Commandes Administrateurs
+
+```
+a-clt: STOP
+```
+Arrête abruptement le serveur.
+
+```
+a-clt: VEND
+```
+Arrête le vote.
+
+```
+srv: RETURN CODE VEND E6
+```
+
+[¹] D'abord le message du client et ensuite le hash du message pour s'assurer de son authenticité.
+Si l'authenticité du message ne peut être prouvée, la connection se ferme automatiquement.
