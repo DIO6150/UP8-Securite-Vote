@@ -16,14 +16,14 @@ CP = rsync -R
 # déclaration des options du compilateur
 CFLAGS = -Wall -Wextra -O3 
 CXXFLAGS = -std=c++20
-CPPFLAGS = -I.
+CPPFLAGS = -I. -Iheaders
 LDFLAGS = -lm
 # définition des fichiers et dossiers
 PACKNAME = Build
-PROGNAME = build
+PROGNAME = build.out
 VERSION = 1.0
 distdir = $(PACKNAME)_$(PROGNAME)-$(VERSION)
-HEADERS = colors.hpp  server_interface.hpp utils.hpp command_status.hpp string_pretty.hpp
+HEADERS = headers/colors.hpp headers/server_interface.hpp headers/utils.hpp headers/command_status.hpp headers/string_pretty.hpp
 SOURCES = main.cpp server_interface.cpp colors.cpp
 OBJ1 = $(SOURCES:.cpp=.o)
 OBJ = $(OBJ1:.c=.o)

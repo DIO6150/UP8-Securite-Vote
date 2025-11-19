@@ -1,12 +1,13 @@
 
 #include <utils.hpp>
 #include <server_interface.hpp>
+#include <command_handler.hpp>
 
 #include <algorithm>
 #include <ctime>
 #include <sstream>
 
-using BigInt = __uint128_t;
+using BigInt = uint64_t;
 
 enum class ConnectionState {
 	NONE,
@@ -15,39 +16,85 @@ enum class ConnectionState {
 };
 
 struct Client {
-	time_t	last_activity;
+	int 	socket;
 	bool	is_admin;
+
+	time_t	last_activity;
 	BigInt	pub_key;
 
-	Client () : last_activity (-1), is_admin (false), pub_key (0) {
+	Client (int socket) : 
+		socket (socket), 
+		is_admin (false), 
+		last_activity (-1), 
+		pub_key (0) {
+
+	}
+
+	Client () : Client (0) {
 
 	}
 };
 
+struct CommandContext {
+	Server & server;
+	Client & client;
+};
+
+struct ServerCommandContext {
+	Server & server;
+};
+
 class ServerHandler : public IHandler {
 public:
-	ServerHandler () {
+	ServerHandler () :
+		pub_key {0} {
+		m_client_handler.RegisterCommand ("STOP", [](const std::vector<std::string> & args, CommandContext & context) {
+			if (context.client.is_admin) {
+				context.server.Stop ();
+			}
+		});
 
+		m_client_handler.RegisterCommand ("ECHO", [](const std::vector<std::string> & args, CommandContext & context) {
+			for (const auto & arg : args) {
+				context.server.Send (context.client.socket, arg);
+			}
+		});
+
+		m_server_handler.RegisterCommand ("STOP", [](const std::vector<std::string> & args, ServerCommandContext & context) {
+			context.server.Stop ();
+		});
 	}
 
 private:
-	void OnRequest (Server & server, int client_socket, char * request) override {
+
+	void OnRequest (Server & server, int client_socket, std::string & request) override {
+		auto tokens = m_client_handler.GetTokens (request);
+		const auto name = tokens.front ();
+		tokens.erase (tokens.begin ());
+
+		Log ("Client [#1#] > {C:GOLD}#2#", client_socket, request);
 		
+		m_client_handler.Handle (name, tokens, {server, m_clients.at (client_socket)});
 	}
 
+	void OnServerRequest (Server & server, std::string & request) override {
+		auto tokens = m_client_handler.GetTokens (request);
+		const auto name = *tokens.erase (tokens.begin ());
+
+		m_server_handler.Handle (name, tokens, {server});
+	};
+
 	void OnUpdate (Server & server, int client_socket) override {
-		time_t timestamp;
 		Client & client = m_clients.at (client_socket);
 
-
-		time (&timestamp);
-		client.last_activity = timestamp;
+		time (&client.last_activity);
 	}
 
 	void OnConnect (Server & server, int client_socket) override {
-		m_clients.insert ({client_socket, Client {}});
+		m_clients.emplace (client_socket, Client {client_socket});
 
-		server.Send (client_socket, "Hello World");
+		server.Send (client_socket, StrArgs ("#1#", pub_key));
+		server.Send (client_socket, StrArgs ("connected as client: #1#", client_socket));
 		Log ("Client #1# connected.", client_socket);
 
 	}
@@ -62,6 +109,9 @@ private:
 	BigInt prv_key;
 
 	std::unordered_map<int, Client> m_clients;
+
+	CommandHandler<CommandContext> m_client_handler;
+	CommandHandler<ServerCommandContext> m_server_handler;
 };
 
 int main (int argc, char **argv)

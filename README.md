@@ -143,7 +143,7 @@ ___
 srv: RETURN CODE VOTE E5
 ```
 
-Un des chiffrés est invalide (est ce que c'est possible de le déterminer à ce stade même ?)
+**Procédure ZKP**
 
 ### Commandes Administrateurs
 
@@ -163,3 +163,10 @@ srv: RETURN CODE VEND E6
 
 [¹] D'abord le message du client et ensuite le hash du message pour s'assurer de son authenticité.
 Si l'authenticité du message ne peut être prouvée, la connection se ferme automatiquement.
+
+___
+
+** INFO **
+
+serveur à besoin de la clé publique
+client ont besoint de s'échanger des clefs privées sans que le serveur connaisse
