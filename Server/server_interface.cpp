@@ -7,11 +7,11 @@
 #define MAX_BODY_SIZE 65536
 
 
-Server::Server (IHandler * handler) : Server {"12345", handler} {
+Server::Server (IHandler *&& handler) : Server {"12345", std::move (handler)} {
 
 }
 
-Server::Server (const char * port, IHandler * handler) :
+Server::Server (const char * port, IHandler *&& handler) :
 m_run (true),
 m_handler (handler) {
 	setup_server (port, m_server);
@@ -23,6 +23,8 @@ Server::~Server () {
 	if (m_server) {
 		close (m_server);
 	}
+
+	delete m_handler;
 }
 
 void Server::Start () {
@@ -36,6 +38,8 @@ void Server::Start () {
 
 	int32_t			body_size;
 
+	pollfd			server_input;
+
 	length = sizeof (from);
 
 	if (listen (m_server, 8) < 0) {
@@ -46,97 +50,94 @@ void Server::Start () {
 
 	Log ("Server is now running");
 
-	while (m_run) {
+	server_input = pollfd {STDIN_FILENO, POLLIN};
 
+	while (m_run) {
+		
+		// Server Console
+		poll (&server_input, 1, 0);
+		if (server_input.revents & POLLIN) {
+			std::string request;
+			std::getline (std::cin, request);
+			m_handler->OnServerRequest (*this, request);
+		}
+
+
+		// Clients Connection Handler
 		m_connection_queue_mutex.lock ();
 
 		while (!m_connection_queue.empty ()) {
 			int client_socket = m_connection_queue.front ();
 			m_connection_queue.pop_front ();
 			
-			m_observers.push_back ({client_socket, POLLIN});
+			AddClient (client_socket);
 			m_handler->OnConnect (*this, client_socket);
 		}
 
 		m_connection_queue_mutex.unlock ();
-
-		while (!m_disconnection_queue.empty ()) {
-			int client_socket = m_connection_queue.front ();
-			m_disconnection_queue.pop_front ();
-			
-			auto pos = std::find_if (
-				m_observers.begin (),
-				m_observers.end (),
-				[&client_socket](pollfd poll) {
-					return (poll.fd == client_socket);
-				}
-			);
-
-			close (client_socket);
-			m_handler->OnDisconnect (*this, client_socket);
-			m_observers.erase (pos);
-		}
 		
 
+		// Clients Handler
 		poll (m_observers.data (), m_observers.size (), 0);
-
-
-		for (auto it = m_observers.begin (); it != m_observers.end ();) {
-			pollfd client_poll = *it;
+		for (int client_index = 0; client_index < m_observers.size ();) {
+			pollfd client_poll = m_observers[client_index];
 			int client_fd = client_poll.fd;
 
+			// Disconnection handler
+			if (m_disconnection.find (client_fd) != m_disconnection.end ()) {
+				close (client_fd);
+				m_handler->OnDisconnect (*this, client_fd);
+				RemoveClient (client_fd);
+
+				continue;
+			}
+
+			// Request Handler
 			if (client_poll.revents & POLLIN) {
 				m_handler->OnUpdate (*this, client_fd);
 
+
+				// Request Header
 				bzero (header_buffer, HEADER_SIZE);
-				
-				if ((n_bytes = read (client_fd, header_buffer, HEADER_SIZE)) < 0) {
-					Log ("{C:RED}Error when reading header");
-					Log ("{C:RED}> #1#", std::strerror (errno));
-					m_handler->OnDisconnect (*this, client_fd);
-					close (client_fd);
-					it = m_observers.erase (it);
-					continue;
-				}
+				n_bytes = read (client_fd, header_buffer, HEADER_SIZE);
+				if (!HeaderHandler (client_index, n_bytes, client_fd)) continue;
 
-				if (n_bytes != 4) {
-					m_handler->OnDisconnect (*this, client_fd);
-					close (client_fd);
-					it = m_observers.erase (it);
-					continue;
-				}
 
+				// Request Body
 				body_size = *(int*)header_buffer;
 				body_size = ntohl (body_size);
 				body_size = body_size >= MAX_BODY_SIZE ? MAX_BODY_SIZE : body_size;
 
-				Log ("{C:GOLD}#1#", body_size);
+				Log ("Trying to read: {C:GOLD}#1# bytes", body_size);
 				
-				body_buffer = (char*) malloc (body_size);
+				body_buffer = (char *) malloc (body_size + 1);
 
-				if ((n_bytes = read (client_fd, body_buffer, body_size)) < 0) {
-					Log ("{C:RED}Error when reading body");
-					Log ("{C:RED}> #1#", std::strerror (errno));
-					m_handler->OnDisconnect (*this, client_poll.fd);
-					// TODO: do something about the lose close, thechnically in a threaded app, close will do weird things if you are closing a socket at the same time as creating one
+				poll (&client_poll, 1, 0);
+				if (!(client_poll.revents & POLLIN)) {
+					Log ("{C:RED}Error body is of size 0.");
+					
 					close (client_fd);
-					it = m_observers.erase (it);
-					continue;
-				}
-
-				if (n_bytes != body_size) {
 					m_handler->OnDisconnect (*this, client_fd);
-					close (client_fd);
-					it = m_observers.erase (it);
+					RemoveClient (client_fd);
+
+					free (body_buffer);
+
 					continue;
 				}
-				
-				m_handler->OnRequest (*this, client_poll.fd, body_buffer);
-				
+
+				n_bytes = read (client_fd, body_buffer, body_size);
+				if (!BodyHandler (client_index, n_bytes, body_size, client_fd, body_buffer)) continue;
+				body_buffer[body_size] = '\0';
+
+
+				// Request Handler
+				std::string request {body_buffer};
+				m_handler->OnRequest (*this, client_fd, request);
 				free (body_buffer);
 
 			}
-			it++;
+
+			++client_index;
 		}
 	}
 	
@@ -169,14 +170,34 @@ void Server::Broadcast (std::string message) {
 void Server::Send (int client, std::string message) {
 	if (message == "") return;
 
+	uint32_t 	header_size;
+	char 		header_bytes[4];
+	std::string	header;
+
+	header.reserve (4);
+
+	header_size = message.length ();
+
+	*(uint32_t *) header_bytes = htonl (header_size);
+
+	header = header_bytes;
+
+	message = header + message;
+
+	Log ("Sending {C:GOLD}#1#{} to client {C:BLUE}#2#{}", message, client);
+	Log ("Header should be: {C:GOLD}[#1#|#2#|#3#|#4#]{}.",
+		(int)header_bytes[0], (int)header_bytes[1], (int)header_bytes[2], (int)header_bytes[3]);
+	Log ("Header is [{C:GOLD}#1#{}]", header);
+
 	if (write (client, message.c_str (), message.length ()) <= 0) {
 		Log ("{C:RED}Error: couldn't send data to client");
+		Log ("{C:RED}> #1#", std::strerror (errno));
 		return;
 	}
 }
 
 void Server::Disconnect (int client_id) {
-	m_disconnection_queue.push_back (client_id);
+	m_disconnection.emplace (client_id);
 }
 
 void Server::ForceDisconnect (int client_id) {
@@ -192,7 +213,9 @@ void Server::Listen () {
 
 	for (;;) {
 		if ((client_socket = accept (m_server, (sockaddr *) &from, (socklen_t *) &len)) <= 0) {
+			if (errno == 22) break;
 			Log ("[LISTENER] Something went wrong: #1#.", client_socket);
+			Log ("{C:RED}> #1# (#2#)", std::strerror (errno), errno);
 			break;
 		}
 
@@ -205,4 +228,95 @@ void Server::Listen () {
 	}
 
 	Log ("[LISTENER] Listening Thread Shutting Down");
+}
+
+void Server::AddClient (int fd) {
+	m_observers_index	.emplace	(fd, m_observers.size ());
+	m_observers		.push_back	({fd, POLLIN});
+}
+
+void Server::RemoveClient (int fd) {
+	int client_index 	= m_observers_index.at 	 (fd);
+	int last_fd 		= m_observers	   .back ().fd;
+
+	if (client_index != m_observers.size () - 1) {
+		m_observers[client_index] = m_observers.back ();
+		m_observers_index[last_fd] = client_index;
+	}
+	m_observers.pop_back ();
+	m_observers_index.erase (fd);
+	
+}
+
+bool Server::HeaderHandler (int & client_index, int bytes, int client_fd) {
+	if (bytes < 0) {
+		Log ("{C:RED}Error when reading header");
+		Log ("{C:RED}Discarding...");
+		
+		++client_index;
+
+		return (false);
+	}
+	else if (bytes == 0) {
+		Log ("{C:RED}EOF reached");
+		Log ("{C:RED}Disconnecting Client...");
+
+		close (client_fd);
+		m_handler->OnDisconnect (*this, client_fd);
+		RemoveClient (client_fd);
+
+		return (false);
+	}
+	else if (bytes != HEADER_SIZE) {
+		Log ("{C:RED}Client sent wrong number of bytes (header)");
+		Log ("{C:RED}Discarding...");
+
+		++client_index;
+
+		return (false);
+	}
+
+	return (true);
+}
+
+bool Server::BodyHandler (int & client_index, int bytes, int body_size, int client_fd, char * body_buffer) {
+	if (bytes < 0) {
+		Log ("{C:RED}#1# bytes read", bytes);
+		Log ("{C:RED}Error when reading body");
+		Log ("{C:RED}> #1#", std::strerror (errno));
+		
+		close (client_fd);
+		m_handler->OnDisconnect (*this, client_fd);
+		RemoveClient (client_fd);
+
+		free (body_buffer);
+
+		return (false);
+	}
+	else if (bytes == 0) {
+		Log ("{C:RED}EOF reached");
+		Log ("{C:RED}Disconnecting Client...");
+
+		close (client_fd);
+		m_handler->OnDisconnect (*this, client_fd);
+		RemoveClient (client_fd);
+
+		free (body_buffer);
+
+		return (false);
+	}
+	else if (bytes != body_size) {
+		Log ("{C:RED}Client sent wrong number of bytes (body)");
+		Log ("{C:RED}Read bytes: #1#; Expected bytes: #2#", bytes, body_size);
+
+		close (client_fd);
+		m_handler->OnDisconnect (*this, client_fd);
+		RemoveClient (client_fd);
+
+		free (body_buffer);
+		
+		return (false);
+	}
+
+	return (true);
 }
