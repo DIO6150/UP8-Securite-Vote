@@ -1,7 +1,9 @@
 import tkinter as tk
+from tkinter import messagebox
+from PIL import Image, ImageTk  # Importation nécessaire pour gérer les images
 
 def ouvrir_fenetre_principale():
-    """Crée et affiche la fenêtre principale avec les 3 boutons."""
+    """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
 
     def action_bouton1():
         print("Le Bouton 1 a été cliqué !")
@@ -11,18 +13,67 @@ def ouvrir_fenetre_principale():
 
     fenetre_principale = tk.Tk()
     fenetre_principale.title("Mon interface à 3 boutons")
-    fenetre_principale.geometry("300x200")
+    fenetre_principale.geometry("400x300") # J'ai un peu agrandi pour les images
 
-    bouton1 = tk.Button(fenetre_principale, text="Cliquez-moi (Bouton 1)", command=action_bouton1)
-    bouton2 = tk.Button(fenetre_principale, text="Action Spéciale (Bouton 2)", command=action_bouton2)
-    bouton3 = tk.Button(fenetre_principale, text="Quitter", command=fenetre_principale.quit)
+    # --- CHARGEMENT DES IMAGES ---
+    # Fonction utilitaire pour charger et redimensionner une image proprement
+    def charger_icone(chemin, taille=(30, 30)):
+        try:
+            img = Image.open(chemin)
+            img = img.resize(taille, Image.Resampling.LANCZOS) # Redimensionner
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Erreur chargement image {chemin}: {e}")
+            return None
 
-    bouton1.pack(pady=10)
-    bouton2.pack(pady=10)
-    bouton3.pack(pady=10)
+    # Remplacez ces noms par vos propres fichiers images
+    icone_btn1 = charger_icone("unknown1.jpg") 
+    icone_btn2 = charger_icone("unknown2.jpg")
+    icone_quit = charger_icone("quit.png")
+
+    # --- CRÉATION DES BOUTONS ---
+    
+    # Bouton 1
+    bouton1 = tk.Button(
+        fenetre_principale, 
+        text=" Cliquez-moi (Bouton 1)", 
+        command=action_bouton1,
+        image=icone_btn1,      # Ajout de l'image
+        compound="left",       # L'image se place à GAUCHE du texte
+        padx=10                # Un peu d'espace interne
+    )
+    # IMPORTANT : Garder une référence pour éviter que l'image ne disparaisse
+    bouton1.image = icone_btn1 
+
+    # Bouton 2
+    bouton2 = tk.Button(
+        fenetre_principale, 
+        text=" Action Spéciale (Bouton 2)", 
+        command=action_bouton2,
+        image=icone_btn2,
+        compound="left",
+        padx=10
+    )
+    bouton2.image = icone_btn2
+
+    # Bouton 3 (Quitter)
+    bouton3 = tk.Button(
+        fenetre_principale, 
+        text=" Quitter", 
+        command=fenetre_principale.destroy,  # <--- Utiliser destroy ici
+        image=icone_quit,
+        compound="left",
+        padx=10,
+        bg="#ffcccc"
+    )
+    bouton3.image = icone_quit
+
+    # --- AFFICHAGE ---
+    bouton1.pack(pady=15, fill="x", padx=50) # fill="x" pour uniformiser la largeur
+    bouton2.pack(pady=15, fill="x", padx=50)
+    bouton3.pack(pady=15, fill="x", padx=50)
 
     fenetre_principale.mainloop()
-
 
 
 def creer_fenetre_login():
@@ -33,16 +84,15 @@ def creer_fenetre_login():
     login_fenetre.geometry("350x200")
 
     def verifier_login():
-        identifiant = entry_id.get()
-        mdp = entry_mdp.get()
-        login = 1
+        # Pour l'exemple, on accepte tout
+        login = 1 
 
         if login:
             print("Connexion réussie !")
             login_fenetre.destroy()
             ouvrir_fenetre_principale()
         else:
-            label_erreur.config(text="Identifiant ou Mot de passe incorrect", fg="red")
+            label_erreur.config(text="Identifiant incorrect", fg="red")
 
     tk.Label(login_fenetre, text="Identifiant:").grid(row=0, column=0, padx=10, pady=10)
     entry_id = tk.Entry(login_fenetre)
@@ -60,5 +110,5 @@ def creer_fenetre_login():
 
     login_fenetre.mainloop()
 
-
-creer_fenetre_login()
+if __name__ == "__main__":
+    creer_fenetre_login()
