@@ -28,8 +28,13 @@ public:
 		command (args, context);
 	}
 
-	static std::vector<std::string> GetTokens (std::string & request) {
-		return (split (request, " "));
+	static std::pair<std::string, std::vector<std::string>> GetTokens (std::string & request) {
+		auto tokens = split (request, " ");
+
+		const auto name = tokens.front ();
+		tokens.erase (tokens.begin ());
+
+		return (std::pair<std::string, std::vector<std::string>> {name, tokens});
 	}
 	
 private:

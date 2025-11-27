@@ -1,4 +1,5 @@
-#include <server_interface.hpp>
+#include <server.hpp>
+#include <server_hooks.hpp>
 #include <utils.hpp>
 
 #include <cstring>
@@ -7,11 +8,11 @@
 #define MAX_BODY_SIZE 65536
 
 
-Server::Server (IHandler *&& handler) : Server {"12345", std::move (handler)} {
+Server::Server (IServerHooks *&& handler) : Server {"12345", std::move (handler)} {
 
 }
 
-Server::Server (const char * port, IHandler *&& handler) :
+Server::Server (const char * port, IServerHooks *&& handler) :
 m_run (true),
 m_handler (handler) {
 	setup_server (port, m_server);

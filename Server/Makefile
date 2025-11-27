@@ -23,8 +23,8 @@ PACKNAME = Build
 PROGNAME = build.out
 VERSION = 1.0
 distdir = $(PACKNAME)_$(PROGNAME)-$(VERSION)
-HEADERS = headers/colors.hpp headers/server_interface.hpp headers/utils.hpp headers/command_status.hpp headers/string_pretty.hpp
-SOURCES = main.cpp server_interface.cpp colors.cpp
+HEADERS = headers/colors.hpp headers/server.hpp headers/server_hooks.hpp headers/utils.hpp headers/command_status.hpp headers/string_pretty.hpp
+SOURCES = main.cpp server.cpp colors.cpp
 OBJ1 = $(SOURCES:.cpp=.o)
 OBJ = $(OBJ1:.c=.o)
 DISTFILES = $(SOURCES) Makefile $(HEADERS) $(EXTRAFILES)
