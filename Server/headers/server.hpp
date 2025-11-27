@@ -24,21 +24,12 @@
 #include <unordered_map>
 #include <vector>
 
-class Server;
-
-class IHandler {
-public:
-	virtual void OnRequest	 	(Server & server, int client_socket, std::string & request) = 0;
-	virtual void OnServerRequest 	(Server & server, std::string & request) = 0;
-	virtual void OnUpdate 		(Server & server, int client_socket) = 0;
-	virtual void OnConnect 		(Server & server, int client_socket) = 0;
-	virtual void OnDisconnect 	(Server & server, int client_socket) = 0;
-};
+class IServerHooks;
 
 class Server {
 public:
-	Server (IHandler *&& handler);
-	Server (const char * port, IHandler *&& handler);
+	Server (IServerHooks *&& handler);
+	Server (const char * port, IServerHooks *&& handler);
 
 	~Server ();
 
@@ -60,7 +51,7 @@ public:
 private:
 	int			m_server;
 	bool			m_run;
-	IHandler *		m_handler;
+	IServerHooks *		m_handler;
 
 	std::vector<pollfd>		m_observers;
 	std::unordered_map<int, int> 	m_observers_index; // client_socket -> m_observer index
