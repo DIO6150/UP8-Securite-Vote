@@ -21,7 +21,7 @@ struct Client {
 	bool		is_admin;
 
 	time_t		last_activity;
-	BigInt		pub_key;
+  BigInt		pub_key;
 
 	ConnectionState	status;
 
