@@ -21,7 +21,6 @@ def listen():
 	responses.put(msg_dechiffre) # queue est thread safe
 
 
-
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 cle_public=0
@@ -32,15 +31,37 @@ listen_thread.start()
 
 client.connect(('localhost', 12345))
 server_cle_public = int.from_bytes(client.recv(msg_size)) #taille fix
-print("Réponse du serveur :", 	server_key_public)
+print("Réponse du serveur :", 	server_cle_public)
 
 cle_public_chiffre = rsa(server_cle_public, cle_public.to_bytes(4,'big'))
 client.sendall(cle_public_chiffre)
+search = ""
+essais = 0
+
+def read():
+	if(queue.Empty):
+		essais +=1
+		return "E"
+	message = responses.get_nowait()
+	responses.task_done()
+	mots = message.upper().split()
+	if mots[0] == "RETURN":
+		if mots[1] == "CODE":
+			if mots[2] == search:
+				return mots[3]
+	return "E"
+
 
 def login(nom, mdp):
 	msg = "LOGIN " + nom + " " + mdp
 	send(msg)
+	search = "LOGIN"
 
+def disconnect():
+	client.close()
 
+def get_nb_candidats():
+	msg = "NBCD"
+	search = "NBCD"
 
 client.close()
