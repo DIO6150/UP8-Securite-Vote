@@ -15,6 +15,7 @@ def ouvrir_fenetre_principale():
     fenetre_principale.title("Mon interface à 3 boutons")
     fenetre_principale.geometry("400x300") # J'ai un peu agrandi pour les images
 
+<<<<<<< HEAD
     # --- CHARGEMENT DES IMAGES ---
     # Fonction utilitaire pour charger et redimensionner une image proprement
     def charger_icone(chemin, taille=(30, 30)):
@@ -25,6 +26,12 @@ def ouvrir_fenetre_principale():
         except Exception as e:
             print(f"Erreur chargement image {chemin}: {e}")
             return None
+=======
+    bouton1 = tk.Button(fenetre_principale, text="Cliquez-moi (Bouton 1)", command=action_bouton1)
+    bouton2 = tk.Button(fenetre_principale, text="Action Spéciale (Bouton 2)", command=action_bouton2)
+    # 💡 CHANGEMENT ICI : Utilisez .destroy au lieu de .quit
+    bouton3 = tk.Button(fenetre_principale, text="Quitter", command=fenetre_principale.destroy)
+>>>>>>> d8c641b4ce835e7384827c057460945679194722
 
     # Remplacez ces noms par vos propres fichiers images
     icone_btn1 = charger_icone("unknown1.jpg") 
@@ -84,12 +91,17 @@ def creer_fenetre_login():
     login_fenetre.geometry("350x200")
 
     def verifier_login():
+<<<<<<< HEAD
         # Pour l'exemple, on accepte tout
+=======
+        identifiant = entry_id.get()
+        mdp = entry_mdp.get()
+>>>>>>> d8c641b4ce835e7384827c057460945679194722
         login = 1 
 
         if login:
             print("Connexion réussie !")
-            login_fenetre.destroy()
+            login_fenetre.destroy() 
             ouvrir_fenetre_principale()
         else:
             label_erreur.config(text="Identifiant incorrect", fg="red")
@@ -110,5 +122,10 @@ def creer_fenetre_login():
 
     login_fenetre.mainloop()
 
+<<<<<<< HEAD
 if __name__ == "__main__":
     creer_fenetre_login()
+=======
+
+creer_fenetre_login()
+>>>>>>> d8c641b4ce835e7384827c057460945679194722
