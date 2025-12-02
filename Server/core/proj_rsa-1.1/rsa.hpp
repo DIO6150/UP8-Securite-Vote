@@ -17,8 +17,8 @@ public:
     str[bits]     = 0; // fin de chaîne
     do {
       for (int i = 0; i < bits - 1; i++) {
-	int c =  (int)(2.0 * rand()  / (RAND_MAX + 1.0));
-	str[i] = '0' + c;
+        int c =  (int)(2.0 * rand()  / (RAND_MAX + 1.0));
+        str[i] = '0' + c;
       }
       mpz_init_set_str(n.get_mpz_t(), str, 2);
     } while (!isPrime(n.get_mpz_t()));
