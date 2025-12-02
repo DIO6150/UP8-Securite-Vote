@@ -135,6 +135,7 @@ RETURN <DATA_TYPE> <command> <data>
 - ```O7``` : 
 
 ## Connection
+Les connections se font en ASCII
 
 ### Échange de clefs
 
