@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageTk  # Importation nécessaire pour gérer les images
+from PIL import Image, ImageTk
 
 def ouvrir_fenetre_principale():
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
@@ -13,7 +13,7 @@ def ouvrir_fenetre_principale():
 
     fenetre_principale = tk.Tk()
     fenetre_principale.title("Mon interface à 3 boutons")
-    fenetre_principale.geometry("400x300") # J'ai un peu agrandi pour les images
+    fenetre_principale.geometry("400x300")
 
     # --- CHARGEMENT DES IMAGES ---
     # Fonction utilitaire pour charger et redimensionner une image proprement
@@ -60,7 +60,7 @@ def ouvrir_fenetre_principale():
     bouton3 = tk.Button(
         fenetre_principale, 
         text=" Quitter", 
-        command=fenetre_principale.destroy,  # <--- Utiliser destroy ici
+        command=fenetre_principale.destroy,
         image=icone_quit,
         compound="left",
         padx=10,
