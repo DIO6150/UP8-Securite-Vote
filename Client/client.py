@@ -28,6 +28,7 @@ cle_private=1
 responses = queue.Queue()
 listen_thread = threading.Thread(target=listen, daemon=True)
 listen_thread.start()
+nb_candidats = 0
 
 client.connect(('localhost', 12345))
 server_cle_public = int.from_bytes(client.recv(msg_size)) #taille fix
@@ -52,6 +53,7 @@ def read():
 			elif mots[1] == "INT8":
 				return int(mots[3])
 			elif mots[1] == "CHAR":
+				nb_candidats = len(mots[3].split('/'))
 				return mots[3]
 	return "E"
 
@@ -67,5 +69,15 @@ def disconnect():
 def get_candidats():
 	send("CANDIDATS")
 	search = "CANDIDATS"
+
+def vote(vote):
+	msg = "VOTE"
+	for loop in range(nb_candidats):
+		if loop == vote:
+			msg+='1'
+		else:
+			msg += '0'
+	send(msg)
+	search="VOTE"
 
 client.close()

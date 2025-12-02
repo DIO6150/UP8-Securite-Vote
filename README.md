@@ -154,6 +154,7 @@ RETURN <DATA_TYPE> <command> <data>
 - ```E7``` : La clef envoyée par le client n'est pas valide
 - ```E8``` : La preuve de clef n'est pas valide.
 - ```E9``` : Client déjà identifié
+- ```E10``` : Vote non initialisé
 
 ##### Oks
 
@@ -196,11 +197,6 @@ ___
 srv: RETURN CODE LOGIN E2
 ```
 Le nom d'utilisateur est invalide
-___
-```
-srv: RETURN CODE LOGIN E3
-```
-Le mot de passe est invalide
 
 ### candidat
 
@@ -222,12 +218,18 @@ srv: RETURN CHAR CANDIDATS <nom_candidat_0>/<nom_candidat_1>/<nom_candidat_2>/ .
 #### Client
 
 ```
-clt: VOTE <candidate_0> <candidate_1> <candidate_2> ... <candidate_n>
+clt: VOTE<candidate_0><candidate_1><candidate_2>...<candidate_n>
 ```
+(sans espace)
 
 Chaque ```candidate_n``` est un chiffré homomorphe de pallier de 0 ou 1.
 
 **La procédure n'est pas encore indiquée pour manque de recherche mais le serveur doit demander une ZKP au client**
+
+```
+srv: RETURN CODE VOTE E10
+```
+Vote non ouvert
 
 #### Server
 
