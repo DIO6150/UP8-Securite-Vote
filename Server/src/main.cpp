@@ -1,9 +1,11 @@
 
-#include <utils.hpp>
-#include <server_hooks.hpp>
-#include <server.hpp>
 #include <command_handler.hpp>
+#include <client_commands.hpp>
+#include <server_commands.hpp>
 #include <rsa.hpp>
+#include <server.hpp>
+#include <server_hooks.hpp>
+#include <utils.hpp>
 
 #include <algorithm>
 #include <ctime>
@@ -11,112 +13,18 @@
 
 #include <gmp.h>
 
-enum class ConnectionState : int {
-	NO_AUTH,
-	PUB_KEY_KNOWN,
-	PUB_KEY_CONFIRMED,
-	FULL_AUTH
-};
-
-struct Client {
-	int 		socket;
-	bool		is_admin;
-
-	time_t		last_activity;
-	mpz_class	pub_key;
-
-	ConnectionState	status;
-
-	int		pub_key_proof;
-
-	Client (int socket) : 
-		socket {socket}, 
-		is_admin {false}, 
-		last_activity {-1}, 
-		pub_key {0},
-		status {ConnectionState::NO_AUTH} {
-
-	}
-
-	Client () : Client (0) {
-
-	}
-
-	bool IsAuth () {
-		return (status == ConnectionState::FULL_AUTH);
-	}
-
-	bool IsAdmin () {
-		return (is_admin && IsAuth ());
-	}
-
-	bool IsMidAuth () {
-		return (status == ConnectionState::PUB_KEY_CONFIRMED);
-	}
-};
-
-struct Vote {
-	std::vector<std::string>	candidates;
-};
-
-struct CommandContext {
-	Server::Server & server;
-	Client & client;
-	Vote   & vote;
-};
-
-struct ServerCommandContext {
-	Server::Server & server;
-};
 
 class BasicListener : public Server::IServerHooks {
 public:
 	BasicListener () :
 		pub_key {0} {
-		m_client_handler.RegisterCommand ("STOP", [](const std::vector<std::string> & args, CommandContext & context) {
-			if (context.client.IsAdmin ()) {
-				context.server.Stop ();
-			}
-		});
 
-		m_client_handler.RegisterCommand ("VOTE", [](const std::vector<std::string> & args, CommandContext & context) {
-			if (!context.client.IsAuth ()) {
-				context.server.Send (context.client.socket, "ERROR CODE VOTE E1");
-				return;
-			}
+		m_client_handler.RegisterCommand ("VOTE_BEGIN", vote_begin);
+		m_client_handler.RegisterCommand ("STOP", client_stop);
+		m_client_handler.RegisterCommand ("VOTE", client_vote);
+		m_client_handler.RegisterCommand ("LOGIN", client_login);
 
-			size_t n_candidate = args.size ();
-
-			
-		});
-
-		m_client_handler.RegisterCommand ("LOGIN", [] (const std::vector<std::string> & args, CommandContext & context) {
-			if (context.client.status == ConnectionState::FULL_AUTH) {
-				context.server.Send (context.client.socket, "RETURN CODE LOGIN E9");
-				return;
-			}
-
-			// TODO : tester si le nom d'utilisateur existe bien
-			bool status = true;
-
-			if (!status) {
-				context.server.Send (context.client.socket, "RETURN CODE LOGIN E2");
-			}
-
-			// TODO: tester si le mot de passe associer à l'utilisateur est le bon
-			status = true;
-
-			if (!status) {
-				context.server.Send (context.client.socket, "RETURN CODE LOGIN E3");
-			}
-
-			context.server.Send (context.client.socket, "RETURN CODE LOGIN O0");
-			context.client.status = ConnectionState::FULL_AUTH;
-		});
-
-		m_server_handler.RegisterCommand ("STOP", [](const std::vector<std::string> & args, ServerCommandContext & context) {
-			context.server.Stop ();
-		});
+		m_server_handler.RegisterCommand ("STOP", server_stop);
 	}
 
 private:
