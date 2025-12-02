@@ -133,7 +133,7 @@ private:
 			client.pub_key = rsa_decrypt (client.pub_key, prv_key);
 			client.status  = ConnectionState::PUB_KEY_KNOWN;
 
-			Log ("Received pub_key {C:GOLD}#1#{}from client {C:GREEN}#2#{}.", client.pub_key, client_socket);
+			Log ("Received pub_key {C:GOLD}#1#{} from client {C:GREEN}#2#{}.", client.pub_key, client_socket);
 			// TODO : select n from 0 to N pseudo randomly doesnt need to be that complicated
 			client.pub_key_proof = 0;
 			
