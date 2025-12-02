@@ -200,6 +200,21 @@ srv: RETURN CODE LOGIN E3
 ```
 Le mot de passe est invalide
 
+### nb candidat
+
+#### Client
+
+```
+clt: NBCD
+```
+
+#### Server
+
+```
+srv: RETURN INT8 NBCD <nb candidat>
+```
+
+
 ### Vote
 
 #### Client
