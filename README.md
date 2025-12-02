@@ -212,7 +212,7 @@ clt: CANDIDATS
 #### Server
 
 ```
-srv: RETURN CHAR CANDIDATS <nom_candidat_0> <nom_candidat_1> <nom_candidat_2> . . . <nom_candidat_n>
+srv: RETURN CHAR CANDIDATS <nom_candidat_0>/<nom_candidat_1>/<nom_candidat_2>/ . . . <nom_candidat_n>
 ```
 
 
