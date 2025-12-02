@@ -34,7 +34,7 @@ Ce projet vise à implémenter une architecture client-serveur sécurisée perme
     * **Zero-Knowledge Proof (ZKP) :**
         - Le client envoie un seul vote chiffré $c$, accompagné de plusieurs triplets de preuve $(\text{a}_j, \text{z}_j, \text{e}_j)$ pour tous les messages possibles.
         - Chaque triplet contient :
-            * $\text{a}_j$ : l'engagement, une valeur qui s'engage à un message sans le révéler.
+            * ${a}_j$ : l'engagement, une valeur qui s'engage à un message sans le révéler.
             * $\text{e}_j$ : le défi partiel, un morceau du défi global. La somme de tous les $\text{e}_j$ doit donner le défi global, qui est calculé comme le hash de tous les engagements $\text{a}_j$ et du chiffré $\text{c}$.
             * $\text{z}_j$ : le morceau de preuve, un nombre qui satisfait l'équation :
             $$
