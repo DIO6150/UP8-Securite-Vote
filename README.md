@@ -31,6 +31,18 @@ Ce projet vise à implémenter une architecture client-serveur sécurisée perme
 4.  **Action de Vote :**
     * Le client envoie ses votes : 1 chiffré randomisé par candidat (dans l'ordre reçu).
     * *Challenge technique :* Vérification de l'unicité du vote (ZKP - Zero Knowledge Proof).
+    * **Zero-Knowledge Proof (ZKP) :**
+        - Le client envoie un seul vote chiffré $c$, accompagné de plusieurs triplets de preuve $(\text{a}_j, \text{z}_j, \text{e}_j)$ pour tous les messages possibles.
+        - Chaque triplet contient :
+            * $\text{a}_j$ : l'engagement, une valeur qui s'engage à un message sans le révéler.
+            * $\text{e}_j$ : le défi partiel, un morceau du défi global. La somme de tous les $\text{e}_j$ doit donner le défi global, qui est calculé comme le hash de tous les engagements $\text{a}_j$ et du chiffré $\text{c}$.
+            * $\text{z}_j$ : le morceau de preuve, un nombre qui satisfait l'équation :
+            $$
+            \text{z}_j^n \equiv \text{a}_j \cdot (c \cdot g^{-\text{m}_j})^{\text{e}_j} \mod n^2
+            $$
+            Pour le vrai vote, $\text{z}_j$ est calculé à partir du secret réel (l’aléa $\text{r}_i$), tandis que pour les autres votes simulés, $\text{z}_j$ est construit pour que l'équation soit correcte sans révéler le vote réel.
+        - Le serveur reçoit $\text{c}$ et tous les triplets, recalcule le défi global, vérifie que la somme des $\text{e}_j$ correspond au défi global, puis teste l’équation pour chaque triplet.
+        - Si toutes les vérifications sont correctes, le vote est validé, sans que le serveur connaisse quel message était réel.
 5.  **Fermeture :**
     * Le serveur attend la fin du temps imparti (X temps).
     * Il clôt les votes et notifie les clients.
