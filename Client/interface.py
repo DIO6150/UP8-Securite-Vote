@@ -16,63 +16,43 @@ def ouvrir_fenetre_principale():
     fenetre_principale.title("Mon interface à 3 boutons")
     fenetre_principale.geometry("400x300")
 
-    # --- CHARGEMENT DES IMAGES ---
-    # Fonction utilitaire pour charger et redimensionner une image proprement
     def charger_icone(chemin, taille=(30, 30)):
         try:
             img = Image.open(chemin)
-            img = img.resize(taille, Image.Resampling.LANCZOS) # Redimensionner
+            img = img.resize(taille, Image.Resampling.LANCZOS)
             return ImageTk.PhotoImage(img)
         except Exception as e:
             print(f"Erreur chargement image {chemin}: {e}")
             return None
 
-    # Remplacez ces noms par vos propres fichiers images
-    icone_btn1 = charger_icone("unknown1.jpg") 
-    icone_btn2 = charger_icone("unknown2.jpg")
     icone_quit = charger_icone("quit.png")
+    reponse_serveur = "Ariana Grande/Bob Lennon/Charlie Chaplin/David Bowie" 
+    candidats = reponse_serveur.split("/")
 
-    # --- CRÉATION DES BOUTONS ---
-    
-    # Bouton 1
-    bouton1 = tk.Button(
-        fenetre_principale, 
-        text=" Cliquez-moi (Bouton 1)", 
-        command=action_bouton1,
-        image=icone_btn1,      # Ajout de l'image
-        compound="left",       # L'image se place à GAUCHE du texte
-        padx=10                # Un peu d'espace interne
-    )
-    # IMPORTANT : Garder une référence pour éviter que l'image ne disparaisse
-    bouton1.image = icone_btn1 
+    def creer_action_vote(candidat):
+        return lambda: print(f"A voté pour {candidat}")
 
-    # Bouton 2
-    bouton2 = tk.Button(
-        fenetre_principale, 
-        text=" Action Spéciale (Bouton 2)", 
-        command=action_bouton2,
-        image=icone_btn2,
-        compound="left",
-        padx=10
-    )
-    bouton2.image = icone_btn2
+    for candidat in candidats:
+        btn = tk.Button(
+            fenetre_principale,
+            text=f"Voter pour {candidat}",
+            command=creer_action_vote(candidat),
+            padx=10,
+            pady=5
+        )
+        btn.pack(pady=5, fill="x", padx=50)
 
-    # Bouton 3 (Quitter)
-    bouton3 = tk.Button(
+    bouton_quitter = tk.Button(
         fenetre_principale, 
-        text=" Quitter", 
+        text="Quitter", 
         command=fenetre_principale.destroy,
         image=icone_quit,
         compound="left",
         padx=10,
         bg="#ffcccc"
     )
-    bouton3.image = icone_quit
-
-    # --- AFFICHAGE ---
-    bouton1.pack(pady=15, fill="x", padx=50) # fill="x" pour uniformiser la largeur
-    bouton2.pack(pady=15, fill="x", padx=50)
-    bouton3.pack(pady=15, fill="x", padx=50)
+    bouton_quitter.image = icone_quit
+    bouton_quitter.pack(pady=20, fill="x", padx=50)
 
     fenetre_principale.mainloop()
 
@@ -89,7 +69,7 @@ def creer_fenetre_login():
         mdp = entry_mdp.get()
         ##client.login(identifiant, mdp)
         login = False
-        code = "E" ##client.read()
+        code = "O0" ##client.read()
         if code == "E":
             label_erreur.config(text="Le serveur ne réponds pas !", fg="red")
         elif code == "E2":
