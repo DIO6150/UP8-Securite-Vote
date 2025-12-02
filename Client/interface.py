@@ -76,6 +76,8 @@ def creer_fenetre_login():
             label_erreur.config(text="Identifiant invalide", fg="red")
         elif code == "E3":
             label_erreur.config(text="Mot de passe invalide", fg="red")
+        elif code == "E10":
+            label_erreur.config(text="Vote non ouvert", fg="red")
         elif code == "O0":
             label_erreur.config(text="Connexion réussie !", fg="green")
             login = True
