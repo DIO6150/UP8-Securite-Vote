@@ -11,12 +11,15 @@
 
 #include "colors.hpp"
 
+// TODO : upgrade some of the functions
+
 // Conversion d'un argument en string
 template <typename T>
-std::string ToString(const T& val) {
+std::string ToString(const T & val) {
 	std::ostringstream oss;
 	oss << val;
-	return oss.str();
+
+	return oss.str ();
 }
 
 template <typename... Args>

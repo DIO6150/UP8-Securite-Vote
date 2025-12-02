@@ -78,14 +78,12 @@ inline std::string trim_copy(std::string s) {
 }
 
 
-inline bool is_string_valid (std::string s)
-{
+inline bool is_string_valid (std::string s) {
 	if (s.length () < 1 || s.length () > 16) return (false);
 
-	std::string valid_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
+	const std::string valid_chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-";
 
-	for (auto& c : s)
-	{
+	for (auto& c : s) {
 		if (std::find (valid_chars.begin (), valid_chars.end (), c) == valid_chars.end ()) return (false);
 	}
 

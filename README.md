@@ -2,15 +2,13 @@
 
 __*Groupe H - Système de vote - Leo Gagey; Mael Éouzan; Neil Belhadj; Nikolas Podevin; Noé Choplin*__
 
-
-
 # Protocole
 
 ## Init
 Serveur -> Lit un fichier avec les informations, vote, date, candidat  
 Serveur -> ouvert  
 
-## Vote
+## Idées
 
 Client -> ce connect au serveur, preuve que c'est un votant et non un inconnu  
 Serveur -> Accepte ou non si inscript sur les listes de vote et envoie si votant les candidats en public ou chiffré ?  
@@ -25,71 +23,64 @@ Serveur -> envoie les gagnants en signer
 Client -> reçois et vérifier la signature  
 
 # Informations générales
+
 Langage choisi :  Python (Client) | C++ (Serveur)
-Interface web par Nikolas Podevin
+Interface en TKinter par Nikolas Podevin
 
+# Notes
 
-**ATTENTION LES COMMANDES QUI SUIVENT NE SONT PAS VALIDES**
-# Commandes
+améliorer l'interface d'envoie de message au client pour pouvoir faire:
+server.Send (client_socket, "#1# #2# ... #n#", args...);
+plutot que server.Send (client_socket, StrArgs ("#1#", args...));
+fonctionnellement identique mais moins verbose.
 
-__Note: Chaque commande sera chiffrée par RSA__
-
-## Client
-
-### Login
-
-
-// TODO : peut etre le faire en auto parce que c'est une communication inutile demander
-#### 1st Pass
-```
-clt: ASK_KEY
-
-srv: RETURN O0 <server-public-key>
-```
-
-#### 2nd Pass
-```
-clt: LOGIN <id> <encrypted-pwd> <client-public-key> <pwd-sha256>
-
-srv: RETURN O0				// OK, client connecté
-
-srv: RETURN E0				// erreur, 
-```
-
-// TODO: Demander si on doit renvoyer la clé lors du vote
-### Envoi d'un vote
-```
-clt: VOTE <encrypted-candidate_1> <encrypted-candidate_2> <encrypted-candidate_3> ... <encrypted-candidate_n>
-
-srv: RETURN O0				// OK, vote enregistré
-srv: RETURN O1				// OK, vote modifié
-srv: RETURN E0				// erreur, pas assez de crypté pour le nombre de candidats
-srv: RETURN E1				// erreur, trop de crypté pour le nombre de candidats
-srv: RETURN E2				// erreur, cryptés invalides (somehow)
-srv: RETURN E3				// erreur, client non connecté
-```
-
-// TODO: est ce que le serveur renvoi les candidats en cryptés
-
-## Server
-
-ON SIGNE AVEC RSA PAS SHA 256 RAAAAAAHHHHH
-on peut renvoyer somme par ligne et par colonne des bulletins pour les vérifications
-
-
-Client dit en clair au serveur: "je veux voter"
-Le serveur répond sa clef publique
-Le client chiffre sa clef publique avec la clef publique du serveur
-le serveur déchiffre avec sa clef privée
-paf échange de clefs
+améliorer la bilbiothèque de str pretty parce que c'est le foutoir
 
 # Protocole
+
+## Notes
+
+
+### Reconnections
+
+Le serveur ne gère pas encore les reconnections
+Cependant, j'immagine que c'est facile à implémenter:
+le serveur envoie une clef de reconnection au client
+quand un client se déconnecte, il le garde en mémoire, lui et sa clef de reconnection un certain nombre de temps.
+si un client essaie de se connecter et envoie sa clef de reconnection,
+le client lui accorde un nouvel ID internement (parce que l'ancien ID a pu être attribué par un autre client) et lui redonne ses perms sans rien demander de plus.
+Essentiellement, la clef agit comme un cookie.
+Attention cependant:
+- la taille de la queue de client déconnecté en mémoire doit être fixe, pour ne pas faire exploser la mémoire du serveur
+- Les clients qui sont connectés moins de X secondes ne doivent pas être enregistrés (DDOS & co)
+- La clef de reconnection ne peut être attribuée qu'au moment d'une authentification complète
+
+### Les étapes d'authentification:
+
+- NoAuth : la socket client est connectée au serveur mais n'a rien envoyée.
+- PubKeyKnown : la socket client à envoyée sa clef publique. Le serveur envoie une demande de confirmation de clef au client.
+- PubKeyConfirmed : la socket client à répondu correctement à la demande de confirmation. Tous les messages suivants sont chiffrés avec RSA entre le serveur et le client.
+- FullAuth : la socket client à envoyée son login et son mot de passe et ceux ci sont valides.
+
+La validation de la clef publique client se fait de la manière suivante:
+- la clef est de la bonne taille
+- le serveur envoie un entier a € [0, n] chiffré. Le client doit renvoyer un entier b = a + 1. (On s'assure ainsi que le client ne s'est pas trompé en envoyant sa propre clef publique) On redemande la clef publique au client si cette étape n'est pas validée.
+
+La validation du login se fait de la manière suivante:
+- le mot de passe envoyé est hashé puis comparer au hash du mot de passe enregistrer pour l'utilisateur.
+-- Si le nom d'utilisateur n'est pas enregistré on renvoie un code d'erreur et on ne déconnecte pas le client.
+-- Si le mot de passe est invalide on renvoie un code d'erreur et on ne déconnecte pas le client
+
+
+
 
 ## Format de messages
 
 Chaque échange entre le serveur et clients se fait par le biais de ```message```s qui constitue:
-- un ```header``` de 32 bits qui donne la taille du ```body``` (envoyé en Big Endian)
+- un ```header``` de 32 bits qui donne la taille du ```body``` (envoyé en Big Endian).
 - un ```body``` qui contient les données que le serveur et le client veulent s'échanger.
+
+- Par la suite, une ```body``` sera constitué d'un ```hash``` de X bits et d'un ```message```. (A partir du moment ou un client est totalement identifié)
 
 ## Réponse du serveur
 
@@ -121,7 +112,8 @@ RETURN <DATA_TYPE> <command> <data>
 - ```E4``` : Nombre de chiffrés invalides
 - ```E5``` : Chiffré invalide
 - ```E6``` : Client n'est pas administrateur
-- ```E7``` : 
+- ```E7``` : La clef envoyée par le client n'est pas valide
+- ```E8``` : La preuve de clef n'est pas valide.
 
 ##### Oks
 
@@ -201,7 +193,7 @@ ___
 srv: RETURN CODE VOTE E5
 ```
 
-Un des chiffrés est invalide (est ce que c'est possible de le déterminer à ce stade même ?)
+**Procédure ZKP**
 
 ### Commandes Administrateurs
 
@@ -221,9 +213,40 @@ srv: RETURN CODE VEND E6
 
 [¹] D'abord le message du client et ensuite le hash du message pour s'assurer de son authenticité.
 Si l'authenticité du message ne peut être prouvée, la connection se ferme automatiquement.
+<<<<<<< HEAD
 =======
 Langage choisi :  Python (Client) | C++ (Serveur)  
 Chiffrement par Léo Gagey (python c++)  
 Server (C++ par Mael Eouzan, Neil Belhadj  
 Client partie réseau (python) par Noé Choplin  
 Tkinter par Nikolas Podevin  
+=======
+
+___
+
+** INFO **
+
+serveur à besoin de la clé publique
+client ont besoint de s'échanger des clefs privées sans que le serveur connaisse
+
+
+
+
+** RSA **
+
+RSA
+
+Actuellement le portage du programme depuis python vers GMP et C++ est à plus de 50%
+Il reste à développer deux méthodes (méthodes de classe), une encode et une decode
+Il faut mettre en place un mécanisme de remplissage d’un nombre n bits (2048 bits dans les tests) octet (8bits) par octet depuis une chaine de caractères (string car c++), une fois plein, encoder ou décoder ce gros nombre puis transformer le résultat à nouveau en chaine de caractères. Continuer cette opération tant qu’il reste des octets dans la string (stream) en entrée. L’idée est d’avoir du string clair TO string chiffré et inversement … en y réfléchissant bien une seule même fonction ferait aussi l’affaire car la seule chose qui changerait serait le paire (e, n) ou (d, n)
+
+##Organisation actuelle du code : ## 
+Le coeur des fonctions (méthodes de classe — car static (inline en plus)) se trouve dans rsa.h. Dans rsa.c il n’y a qu’un test
+Principalement 2 structures (dans le rsa.h) :
+pair_t qui est juste un couplage de deux mpz_class, pour faire une paire pour chaque clé (c’est simplement un typedef)
+Un mpz_class est une surcouche c++ du type C mpz_t (gros entier dans Z). La classe sert à permettre l’utilisation plus facile à comprendre des opérateurs +, -, *, … le mpz_t sert pour utiliser certaines fonctions qui ne sont disponibles qu’en C, comme par exemple mpz_powm (puissance modulaire) ; on utilise alors la méthode get_mpz_t() pour passer les paramètres à la fonction
+Les méthodes ont été créées de classe (static) pour ne pas avoir besoin d’instancier quoi que ce soit (la programmation en paradigme objet n’est pas très utile pour un problème comme ça). Ainsi, à l’extérieur de  la classe, l’appel de ces méthodes se par rsa::nom_de_la_methode(…). Certaines de ces méthodes pourraient être private car au final, depuis l’extérieur de la classe, on aurait juste besoin de la méthode genKeyPair(2048) qui génère et renvoie les deux paires de clés, et d’une méthode qui code/décode un message en renvoyant un message ; ça pourrait être :
+string msgCode(string msg, pair_t key);
+A faire : 
+tout re-parcourir le code et éventuellement ajouter des commentaires pour bien comprendre la correspondance entre les fonctionnalités python et celles proposées par GMP ;
+Commencer à implémenter la méthode string msgCode(string msg, pair_t key); en s’inspirant de la fonction encode du code python. Attention, cette dernière renvoie un tableau de gros entiers (c’était un mauvais choix), il faut plutôt refabriquer une chaîne d’octets (string ??? Car potentiel problème est qu’un octet à zéro soit généré lors de l’encodage, dans ce cas il signifierait la fin de chaîne alors que ça n’est pas le cas … ou peut-être que string possède une connaissance de sa longueur auquel cas pas de problème et pas besoin du \0 pour la fin de chaîne)
