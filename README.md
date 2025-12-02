@@ -114,6 +114,7 @@ RETURN <DATA_TYPE> <command> <data>
 - ```E6``` : Client n'est pas administrateur
 - ```E7``` : La clef envoyée par le client n'est pas valide
 - ```E8``` : La preuve de clef n'est pas valide.
+- ```E9``` : Client déjà identifié
 
 ##### Oks
 

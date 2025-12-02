@@ -16,15 +16,29 @@ CP = rsync -R
 # déclaration des options du compilateur
 CFLAGS = -Wall -Wextra -O3 
 CXXFLAGS = -std=c++20
-CPPFLAGS = -I. -Iheaders
-LDFLAGS = -lm
+CPPFLAGS = -I. -Iincludes -Icore/server/includes -Icore/proj_rsa-1.1 -Ivendor/gmp
+LDFLAGS = -Llibs/gmp -lm -lgmp
 # définition des fichiers et dossiers
 PACKNAME = Build
 PROGNAME = build.out
 VERSION = 1.0
 distdir = $(PACKNAME)_$(PROGNAME)-$(VERSION)
-HEADERS = headers/colors.hpp headers/server.hpp headers/server_hooks.hpp headers/utils.hpp headers/command_status.hpp headers/string_pretty.hpp
-SOURCES =  main.cpp server.cpp colors.cpp
+HEADERS = 	core/proj_rsa-1.1/rsa.hpp \
+		core/server/includes/colors.hpp \
+		core/server/includes/command_handler.hpp \
+		core/server/includes/command_status.hpp \
+		core/server/includes/server_hooks.hpp \
+		core/server/includes/server.hpp \
+		core/server/includes/string_pretty.hpp \
+		core/server/includes/utils.hpp \
+		vendor/gmp/gmp.h \
+		vendor/gmp/gmpxx.h
+
+SOURCES = 	src/main.cpp \
+		core/server/src/colors.cpp \
+		core/server/src/command_handler.cpp \
+		core/server/src/server.cpp
+
 OBJ1 = $(SOURCES:.cpp=.o)
 OBJ = $(OBJ1:.c=.o)
 DISTFILES = $(SOURCES) Makefile $(HEADERS) $(EXTRAFILES)

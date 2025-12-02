@@ -9,6 +9,8 @@
 #include <ctime>
 #include <sstream>
 
+#include <gmp.h>
+
 enum class ConnectionState : int {
 	NO_AUTH,
 	PUB_KEY_KNOWN,
@@ -21,7 +23,7 @@ struct Client {
 	bool		is_admin;
 
 	time_t		last_activity;
-  BigInt		pub_key;
+	mpz_class	pub_key;
 
 	ConnectionState	status;
 
@@ -58,16 +60,16 @@ struct Vote {
 };
 
 struct CommandContext {
-	Server & server;
+	Server::Server & server;
 	Client & client;
 	Vote   & vote;
 };
 
 struct ServerCommandContext {
-	Server & server;
+	Server::Server & server;
 };
 
-class BasicListener : public IServerHooks {
+class BasicListener : public Server::IServerHooks {
 public:
 	BasicListener () :
 		pub_key {0} {
@@ -119,31 +121,34 @@ public:
 
 private:
 
-	void OnRequest (Server & server, int client_socket, std::string & request) override {
+	void OnRequest (Server::Server & server, int client_socket, std::string & request) override {
 		Client & client = m_clients.at (client_socket);
 
 		switch (client.status) {
 		case ConnectionState::NO_AUTH:
 			// TODO : check si la clef est de la bonne taille
 
+			/*
 			if (!StringToBINT (request, client.pub_key)) {
 				server.Send (client_socket, "RETURN CODE _ E7");
 			}
+			*/
 			
-			client.pub_key = rsa_decrypt (client.pub_key, prv_key);
+			// client.pub_key = rsa_decrypt (client.pub_key, prv_key);
 			client.status  = ConnectionState::PUB_KEY_KNOWN;
 
-			Log ("Received pub_key {C:GOLD}#1#{} from client {C:GREEN}#2#{}.", client.pub_key, client_socket);
+			Server::Log ("Received pub_key {C:GOLD}#1#{} from client {C:GREEN}#2#{}.", client.pub_key.get_str (), client_socket);
 			// TODO : select n from 0 to N pseudo randomly doesnt need to be that complicated
 			client.pub_key_proof = 0;
 			
-			server.Send (client_socket, StrArgs ("#1#", rsa_encrypt (client.pub_key_proof)));
-			Log ("Waiting for key confirmation for client {C:GREEN}#1#{}.", client_socket);
+			//server.Send (client_socket, StrArgs ("#1#", rsa_encrypt (client.pub_key_proof)));
+			Server::Log ("Waiting for key confirmation for client {C:GREEN}#1#{}.", client_socket);
 
 			break;
 		
 		case ConnectionState::PUB_KEY_KNOWN:
-			int n_p = rsa_decrypt (client.pub_key, prv_key);
+			int n_p;
+			//n_p = rsa_decrypt (client.pub_key, prv_key);
 				
 			if (n_p != client.pub_key_proof + 1) {
 				server.Send (client_socket, "RETURN CODE _ E8");
@@ -164,42 +169,42 @@ private:
 		
 	}
 
-	void OnServerRequest (Server & server, std::string & request) override {
+	void OnServerRequest (Server::Server & server, std::string & request) override {
 		const auto & [name, tokens] = m_client_handler.GetTokens (request);
 
 		m_server_handler.Handle (name, tokens, {server});
 	};
 
-	void OnUpdate (Server & server, int client_socket) override {
+	void OnUpdate (Server::Server & server, int client_socket) override {
 		Client & client = m_clients.at (client_socket);
 
 		time (&client.last_activity);
 	}
 
-	void OnConnect (Server & server, int client_socket) override {
+	void OnConnect (Server::Server & server, int client_socket) override {
 		m_clients.emplace (client_socket, Client {client_socket});
 
-		server.Send (client_socket, StrArgs ("#1#", pub_key));
+		server.Send (client_socket, StrArgs ("#1#", pub_key.get_str ()));
 		server.Send (client_socket, StrArgs ("connected as client: #1#", client_socket));
-		Log ("Client #1# connected.", client_socket);
+		Server::Log ("Client #1# connected.", client_socket);
 
 	}
 
-	void OnDisconnect (Server & server, int client_socket) override {
+	void OnDisconnect (Server::Server & server, int client_socket) override {
 		m_clients.erase (client_socket);
 
-		Log ("Client #1# disconnected.", client_socket);
+		Server::Log ("Client #1# disconnected.", client_socket);
 	}
 
 	Vote   m_vote;
 
-	BigInt pub_key;
-	BigInt prv_key;
+	mpz_class pub_key;
+	mpz_class prv_key;
 
 	std::unordered_map<int, Client> m_clients;
 
-	CommandHandler<CommandContext> m_client_handler;
-	CommandHandler<ServerCommandContext> m_server_handler;
+	Server::CommandHandler<CommandContext> m_client_handler;
+	Server::CommandHandler<ServerCommandContext> m_server_handler;
 };
 
 int main (int argc, char **argv)
@@ -210,7 +215,7 @@ int main (int argc, char **argv)
 	if (argc == 2) port = argv [1];
 	else port = (char *) default_port;
 
-	Server server {new BasicListener {}};
+	Server::Server server {new BasicListener {}};
 
 	server.Start ();
 }
