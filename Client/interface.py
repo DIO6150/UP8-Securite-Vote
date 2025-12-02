@@ -1,4 +1,5 @@
 import tkinter as tk
+##import client
 from tkinter import messagebox
 from PIL import Image, ImageTk
 
@@ -86,7 +87,22 @@ def creer_fenetre_login():
     def verifier_login():
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
-        login = 1 
+        ##client.login(identifiant, mdp)
+        login = False
+        code = "E" ##client.read()
+        if code == "E":
+            label_erreur.config(text="Le serveur ne réponds pas !", fg="red")
+        elif code == "E2":
+            label_erreur.config(text="Identifiant invalide", fg="red")
+        elif code == "E3":
+            label_erreur.config(text="Mot de passe invalide", fg="red")
+        elif code == "O0":
+            label_erreur.config(text="Connexion réussie !", fg="green")
+            login = True
+        else:
+            label_erreur.config(text="Erreur inconnue, connexion fermée", fg="red")
+            ##client.disconnect()
+            login_fenetre.destroy()
 
         if login:
             print("Connexion réussie !")
