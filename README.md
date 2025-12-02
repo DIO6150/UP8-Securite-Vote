@@ -219,3 +219,25 @@ ___
 
 serveur à besoin de la clé publique
 client ont besoint de s'échanger des clefs privées sans que le serveur connaisse
+
+
+
+
+** RSA **
+
+RSA
+
+Actuellement le portage du programme depuis python vers GMP et C++ est à plus de 50%
+Il reste à développer deux méthodes (méthodes de classe), une encode et une decode
+Il faut mettre en place un mécanisme de remplissage d’un nombre n bits (2048 bits dans les tests) octet (8bits) par octet depuis une chaine de caractères (string car c++), une fois plein, encoder ou décoder ce gros nombre puis transformer le résultat à nouveau en chaine de caractères. Continuer cette opération tant qu’il reste des octets dans la string (stream) en entrée. L’idée est d’avoir du string clair TO string chiffré et inversement … en y réfléchissant bien une seule même fonction ferait aussi l’affaire car la seule chose qui changerait serait le paire (e, n) ou (d, n)
+
+##Organisation actuelle du code : ## 
+Le coeur des fonctions (méthodes de classe — car static (inline en plus)) se trouve dans rsa.h. Dans rsa.c il n’y a qu’un test
+Principalement 2 structures (dans le rsa.h) :
+pair_t qui est juste un couplage de deux mpz_class, pour faire une paire pour chaque clé (c’est simplement un typedef)
+Un mpz_class est une surcouche c++ du type C mpz_t (gros entier dans Z). La classe sert à permettre l’utilisation plus facile à comprendre des opérateurs +, -, *, … le mpz_t sert pour utiliser certaines fonctions qui ne sont disponibles qu’en C, comme par exemple mpz_powm (puissance modulaire) ; on utilise alors la méthode get_mpz_t() pour passer les paramètres à la fonction
+Les méthodes ont été créées de classe (static) pour ne pas avoir besoin d’instancier quoi que ce soit (la programmation en paradigme objet n’est pas très utile pour un problème comme ça). Ainsi, à l’extérieur de  la classe, l’appel de ces méthodes se par rsa::nom_de_la_methode(…). Certaines de ces méthodes pourraient être private car au final, depuis l’extérieur de la classe, on aurait juste besoin de la méthode genKeyPair(2048) qui génère et renvoie les deux paires de clés, et d’une méthode qui code/décode un message en renvoyant un message ; ça pourrait être :
+string msgCode(string msg, pair_t key);
+A faire : 
+tout re-parcourir le code et éventuellement ajouter des commentaires pour bien comprendre la correspondance entre les fonctionnalités python et celles proposées par GMP ;
+Commencer à implémenter la méthode string msgCode(string msg, pair_t key); en s’inspirant de la fonction encode du code python. Attention, cette dernière renvoie un tableau de gros entiers (c’était un mauvais choix), il faut plutôt refabriquer une chaîne d’octets (string ??? Car potentiel problème est qu’un octet à zéro soit généré lors de l’encodage, dans ce cas il signifierait la fin de chaîne alors que ça n’est pas le cas … ou peut-être que string possède une connaissance de sa longueur auquel cas pas de problème et pas besoin du \0 pour la fin de chaîne)
