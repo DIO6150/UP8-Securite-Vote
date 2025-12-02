@@ -139,6 +139,7 @@ RETURN <DATA_TYPE> <command> <data>
 - ```INT16```: int sur 16-bits
 - ```INT32```: int sur 32-bits
 - ```INT64```: int sur 64-bits
+- ```CHAR``` : chaine de caractères
 - ... (à déterminer au fur et à mesure)
 
 ##### Erreurs
@@ -200,18 +201,18 @@ srv: RETURN CODE LOGIN E3
 ```
 Le mot de passe est invalide
 
-### nb candidat
+### candidat
 
 #### Client
 
 ```
-clt: NBCD
+clt: CANDIDATS
 ```
 
 #### Server
 
 ```
-srv: RETURN INT8 NBCD <nb candidat>
+srv: RETURN CHAR CANDIDATS <nom_candidat_0> <nom_candidat_1> <nom_candidat_2> . . . <nom_candidat_n>
 ```
 
 
