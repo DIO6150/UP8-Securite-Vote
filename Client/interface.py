@@ -15,14 +15,14 @@ def ouvrir_fenetre_principale():
 
     bouton1 = tk.Button(fenetre_principale, text="Cliquez-moi (Bouton 1)", command=action_bouton1)
     bouton2 = tk.Button(fenetre_principale, text="Action Spéciale (Bouton 2)", command=action_bouton2)
-    bouton3 = tk.Button(fenetre_principale, text="Quitter", command=fenetre_principale.quit)
+    # 💡 CHANGEMENT ICI : Utilisez .destroy au lieu de .quit
+    bouton3 = tk.Button(fenetre_principale, text="Quitter", command=fenetre_principale.destroy)
 
     bouton1.pack(pady=10)
     bouton2.pack(pady=10)
     bouton3.pack(pady=10)
 
     fenetre_principale.mainloop()
-
 
 
 def creer_fenetre_login():
@@ -35,11 +35,11 @@ def creer_fenetre_login():
     def verifier_login():
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
-        login = 1
+        login = 1 
 
         if login:
             print("Connexion réussie !")
-            login_fenetre.destroy()
+            login_fenetre.destroy() 
             ouvrir_fenetre_principale()
         else:
             label_erreur.config(text="Identifiant ou Mot de passe incorrect", fg="red")

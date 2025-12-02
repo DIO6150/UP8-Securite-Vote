@@ -1,10 +1,3 @@
-#  Makefile 
-#  Auteur : Farès BELHADJ
-#  Email  : amsi@up8.edu
-#  Date   : 28/04/2020
-#  Modifié par Neil Bel Hadj pour utiliser cpp et g++
-# définition des commandes utilisées
-CC = gcc
 CXX = g++
 ECHO = echo
 RM = rm -f
@@ -14,20 +7,18 @@ MKDIR = mkdir
 CHMOD = chmod
 CP = rsync -R
 # déclaration des options du compilateur
-CFLAGS = -Wall -Wextra -O3 
-CXXFLAGS = -std=c++20
-CPPFLAGS = -I. -Iheaders
-LDFLAGS = -lm
+CXXFLAGS = -std=c++11 -Wall -Wextra -O3 -fsanitize=address
+CPPFLAGS = -I.
+LDFLAGS = -lm -lgmp -fsanitize=address
 # définition des fichiers et dossiers
-PACKNAME = Build
-PROGNAME = build.out
-VERSION = 1.0
+PACKNAME = proj
+PROGNAME = rsa
+VERSION = 1.1
 distdir = $(PACKNAME)_$(PROGNAME)-$(VERSION)
-HEADERS = headers/colors.hpp headers/server.hpp headers/server_hooks.hpp headers/utils.hpp headers/command_status.hpp headers/string_pretty.hpp
-SOURCES =  main.cpp server.cpp colors.cpp
-OBJ1 = $(SOURCES:.cpp=.o)
-OBJ = $(OBJ1:.c=.o)
-DISTFILES = $(SOURCES) Makefile $(HEADERS) $(EXTRAFILES)
+HEADERS = rsa.hpp
+SOURCES = rsa.cpp
+OBJ = $(SOURCES:.cpp=.o)
+DISTFILES = $(SOURCES) Makefile $(HEADERS)
 # Traitements automatiques pour ajout de chemins et options (ne pas modifier)
 ifneq (,$(shell ls -d /usr/local/include 2>/dev/null | tail -n 1))
 	CPPFLAGS += -I/usr/local/include
@@ -47,17 +38,11 @@ endif
 ifneq (,$(shell ls -d $(HOME)/local/lib 2>/dev/null | tail -n 1))
 	LDFLAGS += -L$(HOME)/local/lib
 endif
-ifeq ($(shell uname),Darwin)
-	MACOSX_DEPLOYMENT_TARGET = 10.8
-        CFLAGS += -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
-        CXXFLAGS += -mmacosx-version-min=$(MACOSX_DEPLOYMENT_TARGET)
-endif
+
 all: $(PROGNAME)
 $(PROGNAME): $(OBJ)
 	$(CXX) $(OBJ) $(LDFLAGS) -o $(PROGNAME)
-%.o: %.c $(HEADERS)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
-%.o: %.cpp $(HEADERS)
+%.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 dist: distdir
 	$(CHMOD) -R a+r $(distdir)
@@ -73,4 +58,4 @@ distdir: $(DISTFILES)
 	$(CHMOD) 777 $(distdir)
 	$(CP) $(DISTFILES) $(distdir)
 clean:
-	@$(RM) -r $(PROGNAME) $(OBJ) *~ $(distdir).tgz $(distdir).zip gmon.out	\
+	@$(RM) -r $(PROGNAME) $(OBJ) *~ $(distdir).tgz $(distdir).zip gmon.out
