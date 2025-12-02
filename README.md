@@ -211,7 +211,11 @@ clt: CANDIDATS
 ```
 srv: RETURN CHAR CANDIDATS <nom_candidat_0>/<nom_candidat_1>/<nom_candidat_2>/ . . . <nom_candidat_n>
 ```
-
+___
+```
+srv: RETURN CODE VOTE E10
+```
+Vote non ouvert
 
 ### Vote
 
@@ -225,11 +229,6 @@ clt: VOTE<candidate_0><candidate_1><candidate_2>...<candidate_n>
 Chaque ```candidate_n``` est un chiffré homomorphe de pallier de 0 ou 1.
 
 **La procédure n'est pas encore indiquée pour manque de recherche mais le serveur doit demander une ZKP au client**
-
-```
-srv: RETURN CODE VOTE E10
-```
-Vote non ouvert
 
 #### Server
 
