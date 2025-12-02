@@ -52,7 +52,7 @@ def read():
 			elif mots[1] == "INT8":
 				return int(mots[3])
 			elif mots[1] == "CHAR":
-				return ' '.join(mots[3:])
+				return mots[3]
 	return "E"
 
 
