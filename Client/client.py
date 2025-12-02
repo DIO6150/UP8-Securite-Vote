@@ -46,9 +46,13 @@ def read():
 	responses.task_done()
 	mots = message.upper().split()
 	if mots[0] == "RETURN":
-		if mots[1] == "CODE":
-			if mots[2] == search:
+		if mots[2] == search:
+			if mots[1] == "CODE":
 				return mots[3]
+			elif mots[1] == "INT8":
+				return int(mots[3])
+			elif mots[1] == "CHAR":
+				return ' '.join(mots[3:])
 	return "E"
 
 
@@ -60,8 +64,8 @@ def login(nom, mdp):
 def disconnect():
 	client.close()
 
-def get_nb_candidats():
-	msg = "NBCD"
-	search = "NBCD"
+def get_candidats():
+	send("CANDIDATS")
+	search = "CANDIDATS"
 
 client.close()
