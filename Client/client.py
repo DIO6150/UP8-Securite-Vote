@@ -2,6 +2,7 @@ import socket
 import chiffrement
 import queue
 import threading
+server_cle_public = 2
 
 def send(msg):
 	if(type(msg)==int):
@@ -34,12 +35,12 @@ listen_thread = threading.Thread(target=listen, daemon=True)
 listen_thread.start()
 
 read()
-send(cle_public)
+read()
 
 
 def read():
 	rt = "E"
-	while(not queue.Empty):
+	while(not responses.empty()):
 		message = responses.get()
 		responses.task_done()
 		mots = message.upper().split()
@@ -55,6 +56,13 @@ def read():
 						rt = candidats
 					rt = mots[3]
 			break
+		elif mots[0] == "SEND_KEY":
+			cle_serv = mots[1]
+			send(SEND_KEY+" "+cle_public)
+			search = mots[0]
+		elif mots[0] == "SEND_KEY_PROOF":
+			send("SEND_KEY_PROOF" + " " + str(int(mots[1])+1))
+			search = mots[0]
 	return rt
 
 
