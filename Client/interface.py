@@ -26,10 +26,17 @@ def ouvrir_fenetre_principale():
             return None
 
     icone_quit = charger_icone("quit.png")
-    reponse_serveur = "Ariana Grande/Bob Lennon/Charlie Chaplin/David Bowie" 
-    candidats = reponse_serveur.split("/")
+    ##client.candidats()
+    candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
+    choix_vote = client.read()
+    if choix_vote == "O1":
+        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+    else:
+        messagebox.showinfo("Erreur inconnue")
+
 
     def creer_action_vote(candidat):
+        ##client.vote(candidat)
         return lambda: print(f"A voté pour {candidat}")
 
     for candidat in candidats:
