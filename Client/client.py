@@ -34,8 +34,6 @@ responses = queue.Queue()
 listen_thread = threading.Thread(target=listen, daemon=True)
 listen_thread.start()
 
-read()
-read()
 
 
 def read():
@@ -65,6 +63,8 @@ def read():
 			search = mots[0]
 	return rt
 
+read()
+read()
 
 def login(nom, mdp):
 	msg = "LOGIN " + nom + " " + mdp
