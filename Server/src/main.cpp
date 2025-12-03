@@ -32,6 +32,9 @@ public:
 
 
 		m_server_handler.RegisterCommand ("STOP", server_stop);
+		m_server_handler.RegisterCommand ("SEND", server_send);
+		m_server_handler.RegisterCommand ("DISCONNECT", server_disconnect);
+		m_server_handler.RegisterCommand ("LIST", server_list);
 	}
 
 private:
@@ -60,7 +63,6 @@ private:
 		m_clients.emplace (client_socket, Client {client_socket});
 
 		server.Send (client_socket, StrArgs ("SEND_KEY #1#", key_pair[0]->get_str ()));
-		server.Send (client_socket, StrArgs ("(DEBUG) you are: #1#", client_socket));
 		Server::Log ("Client #1# connected.", client_socket);
 
 	}

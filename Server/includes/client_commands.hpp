@@ -67,10 +67,12 @@ static inline void client_login (const std::vector<std::string> & args, CommandC
 
 	context.server.Send (context.client.socket, "RETURN CODE LOGIN O0");
 	context.client.status = ConnectionState::FULL_AUTH;
+	Server::Log ("[Client {C:GOLD}#1#{}] Authenticated.");
 }
 
 static inline void a_client_vote_begin (const std::vector<std::string> & args, CommandContext & context) {
 	context.vote.candidates = args;
+	context.vote.started = true;
 
 	for (const auto & c : context.vote.candidates) {
 		Server::Log ("#1#", c);
@@ -109,7 +111,7 @@ static inline void client_send_key (const std::vector<std::string> & args, Comma
 	context.client.pub_key_proof = 0;
 	
 	std::string proof_str = std::to_string (context.client.pub_key_proof); //StrArgs ("#1#", rsa::code (client.pub_key_proof, &client.pub_key ).get_str ());
-	context.server.Send (context.client.socket, proof_str);
+	context.server.Send (context.client.socket, StrArgs ("SEND_KEY_PROOF #1#", proof_str));
 	Server::Log ("Waiting for key confirmation for client {C:GREEN}#1#{}.", context.client.socket);
 }
 

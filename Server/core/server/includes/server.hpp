@@ -49,6 +49,9 @@ namespace Server {
 		void Disconnect (int client);
 		void ForceDisconnect (int client);
 
+		bool HasClient (int client);
+		std::vector<int> ListClients () const;
+
 	private:
 		int			m_server;
 		bool			m_run;

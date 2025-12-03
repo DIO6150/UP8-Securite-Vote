@@ -21,7 +21,10 @@ while (run):
     for source in read_sockets:
         # 1. Incoming message from server
         if source is client:
-            data = client.recv(4096)
+            header_size_bytes = client.recv(4)
+            header_size = int.from_bytes (header_size_bytes)
+
+            data = client.recv (header_size)
             if not data:
                 print("Server closed connection.")
                 run = False
