@@ -67,7 +67,7 @@ static inline void client_login (const std::vector<std::string> & args, CommandC
 
 	context.server.Send (context.client.socket, "RETURN CODE LOGIN O0");
 	context.client.status = ConnectionState::FULL_AUTH;
-	Server::Log ("[Client {C:GOLD}#1#{}] Authenticated.");
+	Server::Log ("[Client {C:GOLD}#1#{}] Authenticated.", context.client.socket);
 }
 
 static inline void a_client_vote_begin (const std::vector<std::string> & args, CommandContext & context) {
