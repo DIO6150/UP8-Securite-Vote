@@ -1,3 +1,3 @@
 #!/bin/bash
 
-sudo python3 interface.py
+ python3 interface.py
