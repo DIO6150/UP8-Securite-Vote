@@ -154,6 +154,8 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
     * `srv: RETURN CODE VOTE E4` (Nombre de candidats invalides)
     * `srv: RETURN CODE VOTE E5` (Erreur ZKP)
 
+
+
 ## Commandes Administrateurs
 
 * **Action :**
