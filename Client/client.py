@@ -9,7 +9,7 @@ def send(msg):
 	else:
 		msg_bytes = msg.encode('ASCII')
 	len = len(msg_bytes)
-	msg_chiffre = rsa(server_cle_public,msg_bytes)
+	msg_chiffre = chiffrement.rsa(server_cle_public,msg_bytes)
 	client.sendall(len)
 	client.sendall(msg_chiffre)
 
@@ -17,7 +17,7 @@ def listen():
 	size_bytes = client.recv(4)
 	msg_size = int.from_bytes(size_bytes, 'big')
 	msg_chiffre = client.recv(msg_size)
-	msg_dechiffre = rsa_decrypt(cle_private, msg_chiffre).decode('ASCII')
+	msg_dechiffre = chiffrement.rsa(cle_private, msg_chiffre).decode('ASCII')
 	responses.put(msg_dechiffre) # queue est thread safe
 
 
@@ -31,33 +31,31 @@ listen_thread.start()
 candidats = 0
 
 client.connect(('localhost', 12345))
-server_cle_public = int.from_bytes(client.recv(msg_size)) #taille fix
+server_cle_public = int.from_bytes(client.recv(112)) #taille fix
 print("Réponse du serveur :", 	server_cle_public)
 
-cle_public_chiffre = rsa(server_cle_public, cle_public.to_bytes(4,'big'))
+cle_public_chiffre = chiffrement.rsa(server_cle_public, cle_public.to_bytes(4,'big'))
 client.sendall(cle_public_chiffre)
 search = ""
-essais = 0
 
 def read():
-	if(queue.Empty):
-		essais +=1
-		return "E"
-	message = responses.get()
-	responses.task_done()
-	mots = message.upper().split()
-	if mots[0] == "RETURN":
-		if mots[2] == search:
-			if mots[1] == "CODE":
-				return mots[3]
-			elif mots[1] == "INT8":
-				return int(mots[3])
-			elif mots[1] == "CHAR":
-				if mots[2] == "CANDIDATS":
-					candidats = mots[3].split('/')
-					return candidats
-				return mots[3]
-	return "E"
+	rt = "E"
+	while(not queue.Empty):
+		message = responses.get()
+		responses.task_done()
+		mots = message.upper().split()
+		if mots[0] == "RETURN":
+			if mots[2] == search:
+				if mots[1] == "CODE":
+					rt = mots[3]
+				elif mots[1] == "INT8":
+					rt = int(mots[3])
+				elif mots[1] == "CHAR":
+					if mots[2] == "GET_CANDIDATS":
+						candidats = mots[3].split('/')
+						rt = candidats
+					rt = mots[3]
+	return rt
 
 
 def login(nom, mdp):
@@ -69,8 +67,8 @@ def disconnect():
 	client.close()
 
 def get_candidats():
-	send("CANDIDATS")
-	search = "CANDIDATS"
+	send("GET_CANDIDATS")
+	search = "GET_CANDIDATS"
 
 def vote(vote):
 	msg = "VOTE"
