@@ -34,9 +34,13 @@ static inline void client_vote (const std::vector<std::string> & args, CommandCo
 		return;
 	}
 
-	size_t n_candidate = args.size ();
+	// TODO : PAILLIER GOES HERE
 
-	
+	size_t candidate_count = args.size ();
+
+	if (candidate_count != context.vote.candidates.size ()) {
+		context.server.Send (context.client.socket, "ERROR CODE VOTE E4");
+	}
 }
 
 static inline void client_login (const std::vector<std::string> & args, CommandContext & context) {
@@ -61,4 +65,12 @@ static inline void client_login (const std::vector<std::string> & args, CommandC
 
 	context.server.Send (context.client.socket, "RETURN CODE LOGIN O0");
 	context.client.status = ConnectionState::FULL_AUTH;
+}
+
+static inline void a_client_vote_begin (const std::vector<std::string> & args, CommandContext & context) {
+	context.vote.candidates = args;
+
+	for (const auto & c : context.vote.candidates) {
+		Server::Log ("#1#", c);
+	}
 }

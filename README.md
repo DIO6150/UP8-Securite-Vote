@@ -62,6 +62,13 @@ Chaque échange entre le serveur et les clients se fait par le biais de `message
 2.  **Body :** Contient les données.
     * *Note :* Une fois authentifié, le `body` contient un `hash` + le `message`.
 
+### Status d'Authentification du Client
+
+1.  **NoAuth :** La socket est connectée mais n'a rien envoyé.
+2.  **PubKeyKnown :** Le client a envoyé sa clé publique. Le serveur demande une confirmation.
+3.  **PubKeyConfirmed :** Le client a répondu correctement à la demande de confirmation.
+4.  **FullAuth :** Le socket client a envoyé son login/mot de passe et ceux-ci sont valides.
+
 ### Connection & Authentification
 
 - Échange de clef
@@ -70,20 +77,13 @@ Chaque échange entre le serveur et les clients se fait par le biais de `message
 
 - Validation de clef
     - La clef est de la bonne taille aka 2048 bits
-    - Le serveur envoie un entier $a \in [0, +\infty]$ chiffré. Le client doit renvoyer $b = a + 1$.
+    - Le serveur envoie un entier $a \in [0, +\infty[$ chiffré. Le client doit renvoyer $b = a + 1$.
     - Désormais, les messages sont chiffrés avec RSA.
 
 - Validation d'authentification
     - Le mot de passe envoyé est hashé puis comparer au hash du mot de passe enregistrer pour l'utilisateur.
     - Si le nom d'utilisateur n'est pas enregistré on renvoie un code d'erreur
     - Si le mot de passe est invalide on renvoie un code d'erreur
-
-### Status d'Authentification du Client
-
-1.  **NoAuth :** La socket est connectée mais n'a rien envoyé.
-2.  **PubKeyKnown :** Le client a envoyé sa clé publique. Le serveur demande une confirmation.
-3.  **PubKeyConfirmed :** Le client a répondu correctement à la demande de confirmation.
-4.  **FullAuth :** Le socket client a envoyé son login/mot de passe et ceux-ci sont valides.
 
 ### Gestion des Reconnexions (TODO)
 Le serveur doit gérer les reconnexions via une "clé de reconnexion" (cookie) :
