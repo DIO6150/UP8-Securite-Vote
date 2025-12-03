@@ -16,7 +16,7 @@ run = True
 
 while (run):
 
-    read_sockets, _, _ = select.select([client, sys.stdin], [], [])
+    read_sockets, _, _ = select.select([client, sys.], [], [])
 
     for source in read_sockets:
         # 1. Incoming message from server
