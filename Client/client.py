@@ -29,11 +29,28 @@ cle_public=111111111111111111111111111111111111111111111111111111111111111111111
 cle_private=1
 candidats = 0
 
-client.connect(('10.74.228.109', 12345))
 search = ""
 responses = queue.Queue()
-listen_thread = threading.Thread(target=listen, daemon=True)
-listen_thread.start()
+connected = False
+
+def connect():
+	global client, connected, listen_thread
+	try:
+		client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		client.connect(('10.74.228.109', 12345))
+		connected = True
+		listen_thread = threading.Thread(target=listen, daemon=True)
+		listen_thread.start()
+		return True
+	except Exception as e:
+		print(f"Connection failed: {e}")
+		connected = False
+		return False
+
+# Initial connection attempt is now manual
+# client.connect(('10.74.228.109', 12345))
+# listen_thread = threading.Thread(target=listen, daemon=True)
+# listen_thread.start()
 
 
 def read():
