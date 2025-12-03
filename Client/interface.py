@@ -8,7 +8,7 @@ import asyncio
 promise = queue.Queue()
 loop = asyncio.new_event_loop() 
 asyncio.set_event_loop(loop)
-
+info = ""
 
 def ouvrir_fenetre_principale():
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
@@ -35,7 +35,7 @@ def ouvrir_fenetre_principale():
     icone_quit = charger_icone("quit.png")
     ##client.candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-    choix_vote = info
+    choix_vote = "01"
     if choix_vote == "O1":
         messagebox.showinfo("Vote", "Votre vote a été pris en compte")
     else:
@@ -81,17 +81,19 @@ def creer_fenetre_login():
     def update():
         global info
         info = client.read()
-        print(info)
+        if(info != "E"):
+           loop.call_soon(loop.stop)
+           loop.run_forever()
         login_fenetre.after(500, update)
     def verifier_login():
+        global info
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
         client.login(identifiant, mdp)
         async def log():
            login = False
-           code = "E"
-           while(code == "E"):
-              code = await client.read()
+           code = info
+           print(code)
            if code == "E":
               label_erreur.config(text="Le serveur ne réponds pas !", fg="red")
            elif code == "E2":
