@@ -1,7 +1,10 @@
 import tkinter as tk
+##import client
+from tkinter import messagebox
+from PIL import Image, ImageTk
 
 def ouvrir_fenetre_principale():
-    """Crée et affiche la fenêtre principale avec les 3 boutons."""
+    """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
 
     def action_bouton1():
         print("Le Bouton 1 a été cliqué !")
@@ -11,16 +14,45 @@ def ouvrir_fenetre_principale():
 
     fenetre_principale = tk.Tk()
     fenetre_principale.title("Mon interface à 3 boutons")
-    fenetre_principale.geometry("300x200")
+    fenetre_principale.geometry("400x300")
 
-    bouton1 = tk.Button(fenetre_principale, text="Cliquez-moi (Bouton 1)", command=action_bouton1)
-    bouton2 = tk.Button(fenetre_principale, text="Action Spéciale (Bouton 2)", command=action_bouton2)
-    # 💡 CHANGEMENT ICI : Utilisez .destroy au lieu de .quit
-    bouton3 = tk.Button(fenetre_principale, text="Quitter", command=fenetre_principale.destroy)
+    def charger_icone(chemin, taille=(30, 30)):
+        try:
+            img = Image.open(chemin)
+            img = img.resize(taille, Image.Resampling.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Erreur chargement image {chemin}: {e}")
+            return None
 
-    bouton1.pack(pady=10)
-    bouton2.pack(pady=10)
-    bouton3.pack(pady=10)
+    icone_quit = charger_icone("quit.png")
+    reponse_serveur = "Ariana Grande/Bob Lennon/Charlie Chaplin/David Bowie" 
+    candidats = reponse_serveur.split("/")
+
+    def creer_action_vote(candidat):
+        return lambda: print(f"A voté pour {candidat}")
+
+    for candidat in candidats:
+        btn = tk.Button(
+            fenetre_principale,
+            text=f"Voter pour {candidat}",
+            command=creer_action_vote(candidat),
+            padx=10,
+            pady=5
+        )
+        btn.pack(pady=5, fill="x", padx=50)
+
+    bouton_quitter = tk.Button(
+        fenetre_principale, 
+        text="Quitter", 
+        command=fenetre_principale.destroy,
+        image=icone_quit,
+        compound="left",
+        padx=10,
+        bg="#ffcccc"
+    )
+    bouton_quitter.image = icone_quit
+    bouton_quitter.pack(pady=20, fill="x", padx=50)
 
     fenetre_principale.mainloop()
 
@@ -35,14 +67,31 @@ def creer_fenetre_login():
     def verifier_login():
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
-        login = 1 
+        ##client.login(identifiant, mdp)
+        login = False
+        code = "O0" ##client.read()
+        if code == "E":
+            label_erreur.config(text="Le serveur ne réponds pas !", fg="red")
+        elif code == "E2":
+            label_erreur.config(text="Identifiant invalide", fg="red")
+        elif code == "E3":
+            label_erreur.config(text="Mot de passe invalide", fg="red")
+        elif code == "E10":
+            label_erreur.config(text="Vote non ouvert", fg="red")
+        elif code == "O0":
+            label_erreur.config(text="Connexion réussie !", fg="green")
+            login = True
+        else:
+            label_erreur.config(text="Erreur inconnue, connexion fermée", fg="red")
+            ##client.disconnect()
+            login_fenetre.destroy()
 
         if login:
             print("Connexion réussie !")
             login_fenetre.destroy() 
             ouvrir_fenetre_principale()
         else:
-            label_erreur.config(text="Identifiant ou Mot de passe incorrect", fg="red")
+            label_erreur.config(text="Identifiant incorrect", fg="red")
 
     tk.Label(login_fenetre, text="Identifiant:").grid(row=0, column=0, padx=10, pady=10)
     entry_id = tk.Entry(login_fenetre)
