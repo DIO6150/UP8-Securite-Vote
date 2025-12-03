@@ -2,6 +2,7 @@ import socket
 import chiffrement
 import queue
 import threading
+server_cle_public = 2
 
 def send(msg):
 	if(type(msg)==int):
@@ -28,19 +29,18 @@ cle_private=1
 candidats = 0
 
 client.connect(('localhost', 12345))
-server_cle_public = int.from_bytes(client.recv(112)) #taille fix
-print("Réponse du serveur :", 	server_cle_public)
-
-cle_public_chiffre = chiffrement.rsa(server_cle_public, cle_public.to_bytes(4,'big'))
-client.sendall(cle_public_chiffre)
 search = ""
 responses = queue.Queue()
 listen_thread = threading.Thread(target=listen, daemon=True)
 listen_thread.start()
 
+read()
+read()
+
+
 def read():
 	rt = "E"
-	while(not queue.Empty):
+	while(not responses.empty()):
 		message = responses.get()
 		responses.task_done()
 		mots = message.upper().split()
@@ -55,6 +55,14 @@ def read():
 						candidats = mots[3].split('/')
 						rt = candidats
 					rt = mots[3]
+			break
+		elif mots[0] == "SEND_KEY":
+			cle_serv = mots[1]
+			send(SEND_KEY+" "+cle_public)
+			search = mots[0]
+		elif mots[0] == "SEND_KEY_PROOF":
+			send("SEND_KEY_PROOF" + " " + str(int(mots[1])+1))
+			search = mots[0]
 	return rt
 
 
