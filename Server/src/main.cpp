@@ -13,6 +13,7 @@
 
 #include <gmp.h>
 
+// VERSION 1.0
 
 class BasicListener : public Server::IServerHooks {
 public:
@@ -29,7 +30,7 @@ public:
 		
 		m_client_handler.RegisterCommand ("VOTE_BEGIN", 	vote_begin);
 
-		
+
 		m_server_handler.RegisterCommand ("STOP", server_stop);
 	}
 
