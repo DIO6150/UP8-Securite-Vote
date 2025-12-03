@@ -111,6 +111,7 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | **O0** | Succès | Utilisateur identifié avec succès |
 | **O1** | Succès | Vote pris en compte |
 | **O2** | Succès | Clef validée par le serveur |
+| **O3** | Succès | Clef reçue par le serveur |
 | **E0** | Erreur | Commande non reconnue |
 | **E1** | Erreur | Utilisateur non identifié |
 | **E2** | Erreur | Nom d'utilisateur invalide |
@@ -122,8 +123,49 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | **E8** | Erreur | La preuve de clé n'est pas valide |
 | **E9** | Erreur | Client déjà identifié |
 | **E10** | Erreur | Un vote est déjà en cours |
+| **E11** | Erreur | La clef n'a pas été validée au stade initial d'authentification du client |
 
 ## Protocole
+
+#### Serveur envoie sa clef
+
+* **Action :**
+    * `srv: SEND_KEY <key>`
+        * `key` (clef publique du serveur)
+
+* **Réponse :**
+    * `clt: SEND_KEY <key>`
+        * `key` (clef publique du client, chiffrée avec la clef publique du serveur)
+
+#### Serveur demande une preuve de clef
+
+* **Action :**
+    * `srv: SEND_KEY_PROOF <key_proof>`
+        * `key_proof` (entier $a \in [0, +\infty[$)
+
+* **Réponse :**
+    * `clt: SEND_KEY_PROOF <key_proof>`
+        * `key_proof` (entier $b = a + 1$)
+
+#### Client envoie sa clef
+
+* **Action :**
+    * `clt: SEND_KEY <key>`
+        * `key` (clef publique du client chiffrée)
+
+* **Réponse :**
+    * `srv: RETURN CODE SEND_KEY O3` (la clef a été reçue par le serveur)
+    * `srv: RETURN CODE SEND_KEY E11` (la clef n'a pas été validée par le serveur)
+
+#### Client envoie sa preuve de clef
+
+* **Action :**
+    * `clt: SEND_KEY_PROOF <key_proof>`
+        * `key_proof` (entier)
+
+* **Réponse :**
+    * `srv: RETURN CODE SEND_KEY O2` (la clef a été validée par le serveur)
+    * `srv: RETURN CODE SEND_KEY E8` (la clef n'a pas été validée par le serveur)
 
 #### Se connecter
 
