@@ -13,3 +13,5 @@
 
 # ignore ALL .o files
 *.o
+#ignore ALL __pycache__
+*__pycache__
