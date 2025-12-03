@@ -25,7 +25,7 @@
 namespace Server {
 	template<class ... Args>
 	static void Log (const std::string & message, Args ... args) {
-		std::cerr << "[SERVER] " << StrPretty (message, args ...) << "\n";
+		std::cerr << "[SERVER]\t" << StrPretty (message, args ...) << "\n";
 	}
 }
 

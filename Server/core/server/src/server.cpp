@@ -231,10 +231,7 @@ namespace Server {
 
 		message = header + message;
 
-		Log ("Sending {C:GOLD}#1#{} to client {C:BLUE}#2#{}", message, client);
-		Log ("Header should be: {C:GOLD}[#1#|#2#|#3#|#4#]{}.",
-			(int)header_bytes[0], (int)header_bytes[1], (int)header_bytes[2], (int)header_bytes[3]);
-		Log ("Header is [{C:GOLD}#1#{}]", header);
+		Log ("Sending {C:GOLD}#1#{} to [Client {C:BLUE}#2#{}]", message, client);
 		
 		if (write (client, message.c_str (), message.length ()) <= 0) {
 			Log ("{C:RED}Error: couldn't send data to client");
@@ -306,7 +303,7 @@ namespace Server {
 		}
 		else if (bytes == 0) {
 			Log ("{C:RED}EOF reached");
-			Log ("{C:RED}Disconnecting Client...");
+			Log ("{C:RED}Disconnecting Client #1#...", client_fd);
 			
 			close (client_fd);
 			m_handler->OnDisconnect (*this, client_fd);
@@ -342,7 +339,7 @@ namespace Server {
 		}
 		else if (bytes == 0) {
 			Log ("{C:RED}EOF reached");
-			Log ("{C:RED}Disconnecting Client...");
+			Log ("{C:RED}Disconnecting Client #1#...", client_fd);
 			
 			close (client_fd);
 			m_handler->OnDisconnect (*this, client_fd);
