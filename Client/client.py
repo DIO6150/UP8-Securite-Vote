@@ -8,9 +8,9 @@ def send(msg):
 		msg_bytes = msg.to_bytes(4, 'big')
 	else:
 		msg_bytes = msg.encode('ASCII')
-	len = len(msg_bytes)
+	size = len(msg_bytes).to_bytes(4, 'big')
 	msg_chiffre = chiffrement.rsa(server_cle_public,msg_bytes)
-	client.sendall(len)
+	client.sendall(size)
 	client.sendall(msg_chiffre)
 
 def listen():
@@ -25,9 +25,6 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 cle_public=0
 cle_private=1
-responses = queue.Queue()
-listen_thread = threading.Thread(target=listen, daemon=True)
-listen_thread.start()
 candidats = 0
 
 client.connect(('localhost', 12345))
@@ -37,6 +34,9 @@ print("Réponse du serveur :", 	server_cle_public)
 cle_public_chiffre = chiffrement.rsa(server_cle_public, cle_public.to_bytes(4,'big'))
 client.sendall(cle_public_chiffre)
 search = ""
+responses = queue.Queue()
+listen_thread = threading.Thread(target=listen, daemon=True)
+listen_thread.start()
 
 def read():
 	rt = "E"
@@ -64,6 +64,7 @@ def login(nom, mdp):
 	search = "LOGIN"
 
 def disconnect():
+	print("client fermer")
 	client.close()
 
 def get_candidats():
@@ -80,4 +81,3 @@ def vote(vote):
 	send(msg)
 	search="VOTE"
 
-client.close()
