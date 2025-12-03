@@ -3,12 +3,12 @@ import client
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import queue
-import asyncio
 
 promise = queue.Queue()
-loop = asyncio.new_event_loop() 
-asyncio.set_event_loop(loop)
 info = ""
+def f():
+	return None
+func = f
 
 def ouvrir_fenetre_principale():
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
@@ -28,19 +28,16 @@ def ouvrir_fenetre_principale():
 
     ##client.candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-
+    choix_vote = "01"
+    if choix_vote == "O1":
+        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+    else:
+        messagebox.showinfo("Erreur inconnue")
 
 
     def creer_action_vote(candidat):
-        def callback():
-            ##client.vote(candidat)
-            print(f"A voté pour {candidat}")
-            choix_vote = "O1"
-            if choix_vote == "O1":
-                messagebox.showinfo("Vote", "Votre vote a été pris en compte")
-            else:
-                messagebox.showinfo("Erreur inconnue")
-        return callback
+        ##client.vote(candidat)
+        return lambda: print(f"A voté pour {candidat}")
 
     for candidat in candidats:
         btn = tk.Button(
@@ -76,15 +73,15 @@ def creer_fenetre_login():
         global info
         info = client.read()
         if(info != "E"):
-           loop.call_soon(loop.stop)
-           loop.run_forever()
+           func()
         login_fenetre.after(500, update)
     def verifier_login():
         global info
+        global func
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
         client.login(identifiant, mdp)
-        async def log():
+        def log():
            login = False
            code = info
            print(code)
@@ -110,7 +107,7 @@ def creer_fenetre_login():
               ouvrir_fenetre_principale()
            else:
               label_erreur.config(text="Identifiant incorrect", fg="red")
-        asyncio.ensure_future(log())
+        func = log
 
     tk.Label(login_fenetre, text="Identifiant:").grid(row=0, column=0, padx=10, pady=10)
     entry_id = tk.Entry(login_fenetre)
