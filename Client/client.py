@@ -28,15 +28,14 @@ cle_private=1
 candidats = 0
 
 client.connect(('localhost', 12345))
-server_cle_public = int.from_bytes(client.recv(112)) #taille fix
-print("Réponse du serveur :", 	server_cle_public)
-
-cle_public_chiffre = chiffrement.rsa(server_cle_public, cle_public.to_bytes(4,'big'))
-client.sendall(cle_public_chiffre)
 search = ""
 responses = queue.Queue()
 listen_thread = threading.Thread(target=listen, daemon=True)
 listen_thread.start()
+
+read()
+send(cle_public)
+
 
 def read():
 	rt = "E"
@@ -55,6 +54,7 @@ def read():
 						candidats = mots[3].split('/')
 						rt = candidats
 					rt = mots[3]
+			break
 	return rt
 
 
