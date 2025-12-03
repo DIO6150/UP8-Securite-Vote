@@ -2,6 +2,13 @@ import tkinter as tk
 import client
 from tkinter import messagebox
 from PIL import Image, ImageTk
+import queue
+import asyncio
+
+promise = queue.Queue()
+loop = asyncio.new_event_loop() 
+asyncio.set_event_loop(loop)
+
 
 def ouvrir_fenetre_principale():
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
@@ -28,7 +35,7 @@ def ouvrir_fenetre_principale():
     icone_quit = charger_icone("quit.png")
     ##client.candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-    choix_vote = client.read()
+    choix_vote = info
     if choix_vote == "O1":
         messagebox.showinfo("Vote", "Votre vote a été pris en compte")
     else:
@@ -71,34 +78,43 @@ def creer_fenetre_login():
     login_fenetre.title("Connexion")
     login_fenetre.geometry("350x200")
 
+    def update():
+        global info
+        info = client.read()
+        print(info)
+        login_fenetre.after(500, update)
     def verifier_login():
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
         client.login(identifiant, mdp)
-        login = False
-        code = client.read()
-        if code == "E":
-            label_erreur.config(text="Le serveur ne réponds pas !", fg="red")
-        elif code == "E2":
-            label_erreur.config(text="Identifiant invalide", fg="red")
-        elif code == "E3":
-            label_erreur.config(text="Mot de passe invalide", fg="red")
-        elif code == "E10":
-            label_erreur.config(text="Vote non ouvert", fg="red")
-        elif code == "O0":
-            label_erreur.config(text="Connexion réussie !", fg="green")
-            login = True
-        else:
-            label_erreur.config(text="Erreur inconnue, connexion fermée", fg="red")
-            client.disconnect()
-            login_fenetre.destroy()
+        async def log():
+           login = False
+           code = "E"
+           while(code == "E"):
+              code = await client.read()
+           if code == "E":
+              label_erreur.config(text="Le serveur ne réponds pas !", fg="red")
+           elif code == "E2":
+              label_erreur.config(text="Identifiant invalide", fg="red")
+           elif code == "E3":
+              label_erreur.config(text="Mot de passe invalide", fg="red")
+           elif code == "E10":
+              label_erreur.config(text="Vote non ouvert", fg="red")
+           elif code == "O0":
+              label_erreur.config(text="Connexion réussie !", fg="green")
+              login = True
+           else:
+              label_erreur.config(text="Erreur inconnue, connexion fermée", fg="red")
+              client.disconnect()
+              login_fenetre.destroy()
 
-        if login:
-            print("Connexion réussie !")
-            login_fenetre.destroy() 
-            ouvrir_fenetre_principale()
-        else:
-            label_erreur.config(text="Identifiant incorrect", fg="red")
+           if login:
+              print("Connexion réussie !")
+              login_fenetre.destroy() 
+              ouvrir_fenetre_principale()
+           else:
+              label_erreur.config(text="Identifiant incorrect", fg="red")
+        asyncio.ensure_future(log())
 
     tk.Label(login_fenetre, text="Identifiant:").grid(row=0, column=0, padx=10, pady=10)
     entry_id = tk.Entry(login_fenetre)
@@ -114,6 +130,7 @@ def creer_fenetre_login():
     btn_connecter = tk.Button(login_fenetre, text="Se connecter", command=verifier_login)
     btn_connecter.grid(row=3, column=0, columnspan=2, pady=10)
 
+    login_fenetre.after(100, update)
     login_fenetre.mainloop()
 
 
