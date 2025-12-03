@@ -116,7 +116,7 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | **E1** | Erreur | Utilisateur non identifié |
 | **E2** | Erreur | Nom d'utilisateur invalide |
 | **E3** | Erreur | Mot de passe invalide |
-| **E4** | Erreur | Nombre de chiffrés invalide |
+| **E4** | Erreur | Nombre d'arguments invalides |
 | **E5** | Erreur | Chiffré invalide (Échec ZKP) |
 | **E6** | Erreur | Client n'est pas administrateur |
 | **E7** | Erreur | La clé envoyée par le client n'est pas valide |
@@ -124,6 +124,7 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | **E9** | Erreur | Client déjà identifié |
 | **E10** | Erreur | Un vote est déjà en cours |
 | **E11** | Erreur | La clef n'a pas été validée au stade initial d'authentification du client |
+| **E12** | Erreur | Le client n'en est plus à ce stade d'authentification |
 
 ## Protocole
 
