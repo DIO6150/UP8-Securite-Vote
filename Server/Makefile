@@ -32,7 +32,12 @@ HEADERS = 	core/proj_rsa-1.1/rsa.hpp \
 		core/server/includes/string_pretty.hpp \
 		core/server/includes/utils.hpp \
 		vendor/gmp/gmp.h \
-		vendor/gmp/gmpxx.h
+		vendor/gmp/gmpxx.h \
+		includes/client_commands.hpp \
+		includes/client.hpp \
+		includes/context.hpp \
+		includes/server_commands.hpp \
+		includes/vote.hpp
 
 SOURCES = 	src/main.cpp \
 		core/server/src/colors.cpp \
