@@ -110,6 +110,7 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | :--- | :--- | :--- |
 | **O0** | Succès | Utilisateur identifié avec succès |
 | **O1** | Succès | Vote pris en compte |
+| **O2** | Succès | Clef validée par le serveur |
 | **E0** | Erreur | Commande non reconnue |
 | **E1** | Erreur | Utilisateur non identifié |
 | **E2** | Erreur | Nom d'utilisateur invalide |

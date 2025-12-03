@@ -78,6 +78,8 @@ private:
 			
 			client.status = ConnectionState::PUB_KEY_CONFIRMED;
 			
+			server.Send (client_socket, "RETURN CODE _ O2");
+			Server::Log ("{C:BLUE}(DEBUG) Key for Client [#1#] validated.", client.socket);
 			break;
 		}
 
