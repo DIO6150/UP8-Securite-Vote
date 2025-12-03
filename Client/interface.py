@@ -35,16 +35,19 @@ def ouvrir_fenetre_principale():
     icone_quit = charger_icone("quit.png")
     ##client.candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-    choix_vote = "01"
-    if choix_vote == "O1":
-        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
-    else:
-        messagebox.showinfo("Erreur inconnue")
+
 
 
     def creer_action_vote(candidat):
-        ##client.vote(candidat)
-        return lambda: print(f"A voté pour {candidat}")
+        def callback():
+            ##client.vote(candidat)
+            print(f"A voté pour {candidat}")
+            choix_vote = "O1"
+            if choix_vote == "O1":
+                messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+            else:
+                messagebox.showinfo("Erreur inconnue")
+        return callback
 
     for candidat in candidats:
         btn = tk.Button(
