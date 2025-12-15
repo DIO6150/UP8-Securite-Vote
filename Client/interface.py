@@ -20,7 +20,7 @@ def ouvrir_fenetre_principale():
         print("Action spéciale du Bouton 2 !")
 
     fenetre_principale = tk.Tk()
-    fenetre_principale.title("Mon interface à 3 boutons")
+    fenetre_principale.title("Système sécurisé de vote")
     fenetre_principale.geometry("400x300")
 
     def charger_icone(chemin, taille=(30, 30)):
@@ -35,11 +35,6 @@ def ouvrir_fenetre_principale():
 
     ##client.get_candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-    choix_vote = "01"
-    if choix_vote == "O1":
-        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
-    else:
-        messagebox.showinfo("Erreur inconnue")
 
     def creer_action_vote(candidat):
         ##client.vote(candidat)
