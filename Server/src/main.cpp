@@ -31,10 +31,10 @@ public:
 		m_client_handler.RegisterCommand ("VOTE_BEGIN", 	vote_begin);
 
 
-		m_server_handler.RegisterCommand ("STOP", server_stop);
-		m_server_handler.RegisterCommand ("SEND", server_send);
-		m_server_handler.RegisterCommand ("DISCONNECT", server_disconnect);
-		m_server_handler.RegisterCommand ("LIST", server_list);
+		m_server_handler.RegisterCommand ("STOP", 		server_stop);
+		m_server_handler.RegisterCommand ("SEND", 		server_send);
+		m_server_handler.RegisterCommand ("DISCONNECT", 	server_disconnect);
+		m_server_handler.RegisterCommand ("LIST", 		server_list);
 	}
 
 private:
