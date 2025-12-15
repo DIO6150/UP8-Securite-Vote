@@ -33,7 +33,7 @@ def ouvrir_fenetre_principale():
             return None
 
     icone_quit = charger_icone("quit.png")
-    ##client.candidats()
+    ##client.get_candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
     choix_vote = "01"
     if choix_vote == "O1":

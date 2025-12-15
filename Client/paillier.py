@@ -1,7 +1,6 @@
 import random
 import hashlib
 
-
 def pgcd(a, b):
     while b:
         a, b = b, a % b
@@ -9,14 +8,15 @@ def pgcd(a, b):
 
 
 def powmod(base, exp, mod):
-    res = 1
+	return pow(base,exp,mod)
+"""    res = 1
     base = base % mod
     while exp > 0:
         if exp % 2 == 1:
             res = (res * base) % mod
         exp = exp >> 1
         base = (base * base) % mod
-    return res
+    return res"""
 
 
 def modinv(a, m):
