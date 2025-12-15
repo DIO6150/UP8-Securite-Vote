@@ -74,6 +74,68 @@ def create_styled_entry(parent, show=None):
     return entry
 
 def ouvrir_fenetre_principale():
+    def update():
+        global info
+        info = client.read()
+        print("test" + str(info))
+        if(info != "E"):
+           func()
+        fenetre_principale.after(500, update)
+    """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
+
+    fenetre_principale = tk.Tk()
+    fenetre_principale.title("vote")
+    fenetre_principale.geometry("400x300")
+
+    choix_vote = "01"
+    if choix_vote == "O1":
+        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+    else:
+        messagebox.showinfo("Erreur inconnue")
+    fenetre_principale.title("Système sécurisé de vote")
+    fenetre_principale.geometry("400x300")
+
+    def charger_icone(chemin, taille=(30, 30)):
+        try:
+            img = Image.open(chemin)
+            img = img.resize(taille, Image.Resampling.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Erreur chargement image {chemin}: {e}")
+            return None
+
+
+    client.get_candidats()
+    candidats = client.read()
+
+    def creer_action_vote(candidat):
+        def action():
+            client.vote(candidat)
+            print(f"A voté pour {candidat}")
+        return action
+
+    client.get_candidats()
+    def set_candidats():
+        candidats = info
+        print(candidats)
+        for candidat in candidats:
+            btn = tk.Button(
+                fenetre_principale,
+                text=f"Voter pour {candidat}",
+                command=creer_action_vote(candidat),
+                padx=10,
+                pady=5
+            )
+            btn.pack(pady=5, fill="x", padx=50)
+        bouton_quitter = tk.Button(
+            fenetre_principale, 
+            text="❌ Quitter", 
+            command=fenetre_principale.destroy,
+            padx=10,
+            bg="#ffcccc"
+        )
+        bouton_quitter.pack(pady=20, fill="x", padx=50)
+    func = set_candidats
     """Crée et affiche la fenêtre principale avec les candidats stylisés."""
 
     fenetre_principale = tk.Tk()
@@ -222,6 +284,7 @@ def ouvrir_fenetre_principale():
     )
     bouton_quitter.pack(pady=15)
 
+    update()
     fenetre_principale.mainloop()
 
 
