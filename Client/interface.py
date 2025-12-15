@@ -11,15 +11,24 @@ def f():
 func = f
 
 def ouvrir_fenetre_principale():
+    def update():
+        global info
+        info = client.read()
+        print("test" + str(info))
+        if(info != "E"):
+           func()
+        fenetre_principale.after(500, update)
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
 
-    def action_bouton1():
-        print("Le Bouton 1 a été cliqué !")
-
-    def action_bouton2():
-        print("Action spéciale du Bouton 2 !")
-
     fenetre_principale = tk.Tk()
+    fenetre_principale.title("vote")
+    fenetre_principale.geometry("400x300")
+
+    choix_vote = "01"
+    if choix_vote == "O1":
+        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+    else:
+        messagebox.showinfo("Erreur inconnue")
     fenetre_principale.title("Système sécurisé de vote")
     fenetre_principale.geometry("400x300")
 
@@ -33,32 +42,39 @@ def ouvrir_fenetre_principale():
             return None
 
 
-    ##client.get_candidats()
-    candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
+    client.get_candidats()
+    candidats = client.read()
 
     def creer_action_vote(candidat):
-        ##client.vote(candidat)
-        return lambda: print(f"A voté pour {candidat}")
+        def action():
+            client.vote(candidat)
+            print(f"A voté pour {candidat}")
+        return action
 
-    for candidat in candidats:
-        btn = tk.Button(
-            fenetre_principale,
-            text=f"Voter pour {candidat}",
-            command=creer_action_vote(candidat),
+
+    def set_candidats():
+        candidats = info
+        print(candidats)
+        for candidat in candidats:
+            btn = tk.Button(
+                fenetre_principale,
+                text=f"Voter pour {candidat}",
+                command=creer_action_vote(candidat),
+                padx=10,
+                pady=5
+            )
+            btn.pack(pady=5, fill="x", padx=50)
+        bouton_quitter = tk.Button(
+            fenetre_principale, 
+            text="❌ Quitter", 
+            command=fenetre_principale.destroy,
             padx=10,
-            pady=5
+            bg="#ffcccc"
         )
-        btn.pack(pady=5, fill="x", padx=50)
+        bouton_quitter.pack(pady=20, fill="x", padx=50)
+    func = set_candidats
 
-    bouton_quitter = tk.Button(
-        fenetre_principale, 
-        text="❌ Quitter", 
-        command=fenetre_principale.destroy,
-        padx=10,
-        bg="#ffcccc"
-    )
-    bouton_quitter.pack(pady=20, fill="x", padx=50)
-
+    update()
     fenetre_principale.mainloop()
 
 
@@ -128,3 +144,4 @@ def creer_fenetre_login():
 
 
 creer_fenetre_login()
+
