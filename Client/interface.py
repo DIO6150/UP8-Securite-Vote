@@ -32,9 +32,13 @@ def ouvrir_fenetre_principale():
             print(f"Erreur chargement image {chemin}: {e}")
             return None
 
+<<<<<<< HEAD
 
     ##client.get_candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
+=======
+    icone_quit = charger_icone("quit.png")
+>>>>>>> fc94d85 (change key and candidats to candidates)
     choix_vote = "01"
     if choix_vote == "O1":
         messagebox.showinfo("Vote", "Votre vote a été pris en compte")
@@ -42,9 +46,11 @@ def ouvrir_fenetre_principale():
         messagebox.showinfo("Erreur inconnue")
 
     def creer_action_vote(candidat):
-        ##client.vote(candidat)
+        client.vote(candidat)
         return lambda: print(f"A voté pour {candidat}")
-
+    client.get_candidats()
+    candidats = client.read()
+    print(candidats)
     for candidat in candidats:
         btn = tk.Button(
             fenetre_principale,
