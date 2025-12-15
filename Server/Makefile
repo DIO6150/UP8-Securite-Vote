@@ -38,7 +38,8 @@ HEADERS = 	core/proj_rsa-1.1/rsa.hpp \
 		includes/client.hpp \
 		includes/context.hpp \
 		includes/server_commands.hpp \
-		includes/vote.hpp
+		includes/vote.hpp \
+		includes/paillier.hpp
 
 SOURCES = 	src/main.cpp \
 		core/server/src/colors.cpp \
