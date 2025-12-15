@@ -219,7 +219,7 @@ namespace Server {
 		char 		header_bytes[4];
 		std::string	header;
 
-		header.reserve (4);
+		header.resize (4);
 
 		header_size = message.length ();
 

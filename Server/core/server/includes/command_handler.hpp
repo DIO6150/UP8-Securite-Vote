@@ -32,6 +32,8 @@ namespace Server {
 		static std::pair<std::string, std::vector<std::string>> GetTokens (std::string & request) {
 			auto tokens = ServerInternal::split (request, " ");
 
+			if (tokens.empty()) return (std::pair<std::string, std::vector<std::string>> {"", {}});
+
 			const auto name = tokens.front ();
 			tokens.erase (tokens.begin ());
 
