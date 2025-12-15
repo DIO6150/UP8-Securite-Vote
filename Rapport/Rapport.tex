@@ -1,0 +1,158 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+
+% Configuration de la mise en page
+\geometry{hmargin=2.5cm,vmargin=2.5cm}
+\setlength{\parskip}{1em}
+\setlength{\parindent}{0pt}
+
+% Configuration des liens
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+% En-tête et pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\rhead{Groupe H - Système de Vote}
+\lhead{Rapport de Projet}
+\cfoot{\thepage}
+
+\title{\textbf{Implémentation d'un Système de Vote Électronique Sécurisé et Vérifiable}}
+\author{
+    \textbf{Groupe H}\\
+    Leo Gagey, Mael Éouzan, Neil Belhadj,\\
+    Nikolas Podevin, Noé Choplin
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+Ce rapport présente la conception et l'implémentation d'une architecture client-serveur permettant la tenue de votes électroniques anonymes. Le système repose sur des primitives cryptographiques avancées, notamment le chiffrement homomorphe de Paillier et les preuves à divulgation nulle de connaissance (Zero-Knowledge Proofs), pour garantir la confidentialité des bulletins tout en permettant le décompte public des voix par le serveur sans déchiffrement individuel.
+\end{abstract}
+
+\vspace{1cm}
+\textbf{Lien vers le dépôt GitLab :} \\
+\url{https://code.up8.edu/nbelhadj/vote}
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Le vote électronique pose des défis majeurs en termes de sécurité : il faut garantir que chaque votant est légitime, que son vote reste secret (anonymat), mais aussi que le résultat final correspond bien à la somme des votes exprimés (intégrité).
+
+L'objectif de ce projet était de développer une application complète répondant à ces contraintes. Contrairement à une urne classique où l'anonymat est physique, notre système assure l'anonymat mathématique grâce au chiffrement homomorphe. Le serveur, qui centralise les votes, est capable d'additionner les bulletins chiffrés pour obtenir le résultat final chiffré, sans jamais avoir accès au contenu d'un vote individuel en clair.
+
+\section{Architecture et Choix Techniques}
+
+Nous avons opté pour une architecture hybride afin de tirer parti des forces de différents langages : la performance pour le serveur et la flexibilité pour le client.
+
+\subsection{Le Serveur (C++)}
+Le cœur cryptographique et la logique de gestion des votes sont implémentés en C++.
+\begin{itemize}
+    \item \textbf{Bibliothèque GMP :} Nous utilisons GMP (GNU Multiple Precision Arithmetic Library) pour gérer les grands entiers nécessaires au chiffrement RSA et Paillier (clés de 2048 bits).
+    \item \textbf{Performance :} Le C++ permet de traiter efficacement les opérations mathématiques lourdes (exponentiations modulaires) requises par le protocole.
+    \item \textbf{Gestion des connexions :} Le serveur gère plusieurs clients simultanément via des sockets.
+\end{itemize}
+
+\subsection{Le Client (Python)}
+La partie cliente est développée en Python pour sa rapidité de développement et ses bibliothèques riches.
+\begin{itemize}
+    \item \textbf{Interface Graphique :} Utilisation de \texttt{Tkinter} pour offrir une interface utilisateur conviviale (Login, Liste des candidats, Boutons de vote).
+    \item \textbf{Communication :} Implémentation de sockets bruts pour communiquer avec le serveur C++.
+\end{itemize}
+
+\subsection{Protocole de Communication}
+Nous avons défini un protocole applicatif personnalisé. Les messages sont structurés avec un en-tête de taille fixe (32 bits) suivi du corps du message. Les échanges incluent des codes de retour (ex: \texttt{O0} pour succès, \texttt{E3} pour mot de passe invalide) facilitant le débogage et la gestion d'erreurs côté client.
+
+\section{Fonctionnalités et Implémentation Cryptographique}
+
+\subsection{Authentification et Échange de Clés}
+La sécurité du canal est assurée par un échange de clés RSA.
+\begin{enumerate}
+    \item Le serveur envoie sa clé publique.
+    \item Le client répond avec sa propre clé publique chiffrée.
+    \item Une phase de \textit{Challenge} (envoi d'un nombre $a$, réponse attendue $a+1$) permet de valider la possession des clés privées respectives.
+    \item Une fois le canal sécurisé, l'utilisateur s'authentifie via un couple identifiant/mot de passe haché.
+\end{enumerate}
+
+\subsection{Le Vote via le Cryptosystème de Paillier}
+C'est la fonctionnalité centrale du projet. Le système de Paillier est homomorphe additif.
+Si l'on note $E(m)$ le chiffrement d'un message $m$, la propriété fondamentale est :
+\[ E(m_1) \cdot E(m_2) = E(m_1 + m_2) \pmod{n^2} \]
+Cela permet au serveur d'agréger les votes (qui sont des 0 ou des 1 pour chaque candidat) en multipliant les chiffrés reçus. À la fin, le serveur déchiffre la somme totale sans jamais avoir vu les votes individuels.
+
+Dans notre implémentation (fichier \texttt{paillier.py} et \texttt{paillier.hpp}), un vote pour un candidat est un chiffrement de 1, et un non-vote est un chiffrement de 0.
+
+\subsection{Preuve à Divulgation Nulle de Connaissance (ZKP)}
+Pour empêcher un utilisateur malveillant d'envoyer un vote corrompu (par exemple, chiffrer la valeur "100" pour donner 100 voix à un candidat), nous avons implémenté une preuve ZKP (Zero-Knowledge Proof) non-interactive.
+
+Le client doit prouver que le texte chiffré $c$ correspond soit à $m=0$, soit à $m=1$, sans révéler lequel.
+L'algorithme implémenté (visible dans \texttt{paillier.py}) fonctionne comme suit :
+\begin{itemize}
+    \item Le client génère des engagements $a_j$ et des défis partiels $e_j$.
+    \item Il utilise l'aléa $r$ utilisé lors du chiffrement pour construire une preuve $z$.
+    \item Le serveur vérifie l'équation de validité :
+    \[ z_j^n \equiv a_j \cdot (c \cdot g^{-m_j})^{e_j} \pmod{n^2} \]
+\end{itemize}
+Si la vérification échoue, le vote est rejeté (Code erreur \texttt{E5}).
+
+\section{Répartition des Tâches}
+
+Le développement a été collaboratif, avec une séparation des responsabilités selon les couches logicielles :
+
+\begin{center}
+\begin{tabular}{|l|p{10cm}|}
+\hline
+\textbf{Membre} & \textbf{Contributions principales} \\
+\hline
+\textbf{Nikolas Podevin} & \textbf{Développement de l'Interface Graphique (Client).} Conception des fenêtres Tkinter, gestion des événements utilisateurs, affichage dynamique des candidats et intégration visuelle. \\
+\hline
+\textbf{Neil Belhadj} & \textbf{Architecture Serveur et Gestion GitLab.} Mise en place du dépôt, structure du code C++, et intégration des modules cryptographiques. \\
+\hline
+\textbf{Mael Éouzan} & \textbf{Implémentation Cryptographique (C++).} Portage des algorithmes RSA et Paillier avec la bibliothèque GMP, gestion des grands nombres. \\
+\hline
+\textbf{Leo Gagey} & \textbf{Protocoles et Logique Client.} Développement du protocole de communication (sockets), logique d'authentification et gestion des commandes côté client. \\
+\hline
+\textbf{Noé Choplin} & \textbf{ZKP et Sécurité.} Recherche et implémentation des preuves Zero-Knowledge (Python/C++) pour la validation des bulletins. \\
+\hline
+\end{tabular}
+\end{center}
+
+\textit{Note : L'ensemble du groupe a participé à la conception de l'architecture globale et à la rédaction de la documentation technique.}
+
+\section{Conclusion et Perspectives}
+
+\subsection{Bilan}
+Nous avons réussi à implémenter un système de vote fonctionnel respectant les principes de confidentialité. L'utilisation conjointe de C++ et Python a permis d'obtenir un backend performant et un frontend accessible. L'intégration du ZKP est une réussite technique majeure qui renforce la robustesse du système face aux fraudes.
+
+\subsection{Limitations et Améliorations Futures}
+Certaines parties du projet pourraient être améliorées :
+\begin{itemize}
+    \item \textbf{Portage RSA en C++ :} Comme indiqué dans notre suivi technique, le portage complet des fonctions RSA (notamment le padding complexe) est encore en cours de finalisation à 100\%.
+    \item \textbf{Gestion des pannes :} Un système de reconnexion (via cookie de session) a été conçu théoriquement mais reste à finaliser pour gérer les coupures réseau intempestives.
+    \item \textbf{Interface Admin :} L'administration du vote se fait actuellement via des commandes consoles ; une interface graphique dédiée aux organisateurs serait un plus.
+\end{itemize}
+
+Ce projet nous a permis de mieux comprendre les enjeux concrets de la cryptographie appliquée et la complexité de sécuriser une architecture client-serveur critique.
+
+\end{document}
