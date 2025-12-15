@@ -29,7 +29,7 @@ cle_public=111111111111111111111111111111111111111111111111111111111111111111111
 cle_private=1
 candidats = 0
 
-client.connect(('10.74.228.109', 12345))
+client.connect(('localhost', 12345))
 search = ""
 responses = queue.Queue()
 listen_thread = threading.Thread(target=listen, daemon=True)

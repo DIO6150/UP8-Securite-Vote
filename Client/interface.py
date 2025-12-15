@@ -35,7 +35,7 @@ def ouvrir_fenetre_principale():
     icone_quit = charger_icone("quit.png")
     ##client.candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-    choix_vote = "01"
+    choix_vote = "O1"
     if choix_vote == "O1":
         messagebox.showinfo("Vote", "Votre vote a été pris en compte")
     else:
