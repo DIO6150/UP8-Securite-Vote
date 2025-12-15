@@ -154,8 +154,6 @@ namespace Server {
 					body_size = *(int*)header_buffer;
 					body_size = ntohl (body_size);
 					body_size = body_size >= MAX_BODY_SIZE ? MAX_BODY_SIZE : body_size;
-
-					Log ("Trying to read: {C:GOLD}#1# bytes", body_size);
 					
 					body_buffer = (char *) malloc (body_size + 1);
 					
@@ -227,14 +225,19 @@ namespace Server {
 
 		*(uint32_t *) header_bytes = htonl (header_size);
 
-		header = header_bytes;
-
-		message = header + message;
-
-		Log ("Sending {C:GOLD}#1#{} to [Client {C:BLUE}#2#{}]", message, client);
+		header[0] = header_bytes[0];
+		header[1] = header_bytes[1];
+		header[2] = header_bytes[2];
+		header[3] = header_bytes[3];
 		
+		if (write (client, header_bytes, 4) <= 0) {
+			Log ("{C:RED}Error: couldn't send header to client");
+			Log ("{C:RED}> #1#", std::strerror (errno));
+			return;
+		}
+
 		if (write (client, message.c_str (), message.length ()) <= 0) {
-			Log ("{C:RED}Error: couldn't send data to client");
+			Log ("{C:RED}Error: couldn't send body to client");
 			Log ("{C:RED}> #1#", std::strerror (errno));
 			return;
 		}
@@ -246,6 +249,20 @@ namespace Server {
 
 	void Server::ForceDisconnect (int client_id) {
 
+	}
+
+	bool Server::HasClient (int client) {
+		return (m_observers_index.find (client) != m_observers_index.end ());
+	}
+
+	std::vector<int> Server::ListClients () const {
+		std::vector<int> clients;
+
+		for (const auto & c : m_observers) {
+			clients.push_back (c.fd);
+		}
+
+		return (clients);
 	}
 
 	void Server::Listen () {

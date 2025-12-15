@@ -41,7 +41,6 @@ def ouvrir_fenetre_principale():
     else:
         messagebox.showinfo("Erreur inconnue")
 
-
     def creer_action_vote(candidat):
         ##client.vote(candidat)
         return lambda: print(f"A voté pour {candidat}")

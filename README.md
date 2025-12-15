@@ -78,7 +78,6 @@ Chaque échange entre le serveur et les clients se fait par le biais de `message
 - Validation de clef
     - La clef est de la bonne taille aka 2048 bits
     - Le serveur envoie un entier $a \in [0, +\infty[$ chiffré. Le client doit renvoyer $b = a + 1$.
-    - Désormais, les messages sont chiffrés avec RSA.
 
 - Validation d'authentification
     - Le mot de passe envoyé est hashé puis comparer au hash du mot de passe enregistrer pour l'utilisateur.
@@ -125,6 +124,8 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | **E10** | Erreur | Un vote est déjà en cours |
 | **E11** | Erreur | La clef n'a pas été validée au stade initial d'authentification du client |
 | **E12** | Erreur | Le client n'en est plus à ce stade d'authentification |
+| **E13** | Erreur | Il n'y a pas de votes en cours |
+
 
 ## Protocole
 
@@ -205,6 +206,11 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
     * `srv: RETURN CODE VOTE E4` (Nombre de candidats invalides)
     * `srv: RETURN CODE VOTE E5` (Erreur ZKP)
 
+#### Serveur envoie le résultat des votes
+
+* **Action :**
+    * `srv: SEND_VOTE_RESULT <result_1> ... <result_n>`
+        * `result_n` (le résultat pour candidat n)
 
 
 ## Commandes Administrateurs

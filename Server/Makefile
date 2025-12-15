@@ -18,7 +18,7 @@ CFLAGS = -Wall -Wextra -O3
 CXXFLAGS = -std=c++20
 CPPFLAGS = -I. -Iincludes -Icore/server/includes -Icore/proj_rsa-1.1 -Ivendor/gmp
 #LDFLAGS = -Llibs/gmp -lm -lgmp
-LDFLAGS = -lm -lgmp -fsanitize=address #pour celleux qui compilent sous MacOS
+LDFLAGS = -Llibs/gmp -lm -lgmp -fsanitize=address #pour celleux qui compilent sous MacOS
 # définition des fichiers et dossiers
 PACKNAME = Build
 PROGNAME = build.out

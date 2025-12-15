@@ -24,6 +24,42 @@ static inline void vote_begin (const std::vector<std::string> & args, CommandCon
 	std::copy (args.begin (), args.end (), back_inserter (context.vote.candidates));
 }
 
+static inline void vote_end (const std::vector<std::string> & args, CommandContext & context) {
+	if (!context.client.IsAdmin ()) {
+		context.server.Send (context.client.socket, "ERROR CODE VOTE E6");
+		return;
+	}
+
+	if (!context.vote.started) {
+		context.server.Send (context.client.socket, "ERROR CODE VOTE E13");
+		return;
+	}
+
+	context.vote.started = false;
+
+	std::vector<mpz_class> sum;
+	sum.reserve (context.vote.candidates.size ());
+
+	for (int i = 0; i < sum.size (); ++i) {
+		for (auto & [id, client] : context.clients) {
+			if (client.voted) {
+				mpz_mul (sum[i].get_mpz_t (), sum[i].get_mpz_t (), client.vote[i].get_mpz_t ());
+				mpz_mod (sum[i].get_mpz_t (), sum[i].get_mpz_t (), context.vote.pallier_pub_key.get_mpz_t ());
+			}
+		}
+	}
+
+	std::string results = "";
+
+	for (auto & s : sum) {
+		results = StrArgs ("#1# #2#", results, s.get_str ());
+	}
+
+	results = StrArgs ("SEND_VOTE_RESULT #1#", results);
+
+	context.server.Broadcast (results);
+}
+
 static inline void client_stop(const std::vector<std::string> & args, CommandContext & context) {
 	if (context.client.IsAdmin ()) {
 		context.server.Stop ();
@@ -67,10 +103,12 @@ static inline void client_login (const std::vector<std::string> & args, CommandC
 
 	context.server.Send (context.client.socket, "RETURN CODE LOGIN O0");
 	context.client.status = ConnectionState::FULL_AUTH;
+	Server::Log ("[Client {C:GOLD}#1#{}] Authenticated.", context.client.socket);
 }
 
 static inline void a_client_vote_begin (const std::vector<std::string> & args, CommandContext & context) {
 	context.vote.candidates = args;
+	context.vote.started = true;
 
 	for (const auto & c : context.vote.candidates) {
 		Server::Log ("#1#", c);
@@ -109,7 +147,7 @@ static inline void client_send_key (const std::vector<std::string> & args, Comma
 	context.client.pub_key_proof = 0;
 	
 	std::string proof_str = std::to_string (context.client.pub_key_proof); //StrArgs ("#1#", rsa::code (client.pub_key_proof, &client.pub_key ).get_str ());
-	context.server.Send (context.client.socket, proof_str);
+	context.server.Send (context.client.socket, StrArgs ("SEND_KEY_PROOF #1#", proof_str));
 	Server::Log ("Waiting for key confirmation for client {C:GREEN}#1#{}.", context.client.socket);
 }
 
@@ -142,4 +180,21 @@ static inline void client_send_key_proof (const std::vector<std::string> & args,
 
 	context.server.Send (context.client.socket, "RETURN CODE SEND_KEY_PROOF O2");
 	Server::Log ("{C:BLUE}(DEBUG) Key for Client [#1#] validated.", context.client.socket);
+}
+
+static inline void client_get_candidates (const std::vector<std::string> & args, CommandContext & context) {
+	if (!context.vote.started) {
+		context.server.Send (context.client.socket, "ERROR CODE GET_CANDIDATES E13");
+		return;
+	}
+
+	std::string candidates = "";
+
+	for (const auto & candidat : context.vote.candidates) {
+		candidates = StrArgs ("#1# #2#", candidates, candidat);
+	}
+
+	candidates = StrArgs ("RETURN CHAR GET_CANDIDATES#1#", candidates);
+
+	context.server.Send (context.client.socket, candidates);
 }
