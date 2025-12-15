@@ -194,7 +194,7 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
     * `clt: GET_CANDIDATS`
 
 * **Réponse :**
-    * `srv: RETURN CHAR GET_CANDIDATS <candidate_0> <candidate_1> ... <candidate_n>`
+    * `srv: RETURN CHAR GET_CANDIDATS <candidate_0>/<candidate_1>/ ... /<candidate_n>`
 
 #### Voter
 

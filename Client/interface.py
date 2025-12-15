@@ -74,6 +74,116 @@ def create_styled_entry(parent, show=None):
     return entry
 
 def ouvrir_fenetre_principale():
+    def update():
+        global info
+        info = client.read()
+        print("test" + str(info))
+        if(info != "E"):
+           func()
+        fenetre_principale.after(500, update)
+    """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
+
+    def charger_icone(chemin, taille=(30, 30)):
+        try:
+            img = Image.open(chemin)
+            img = img.resize(taille, Image.Resampling.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Erreur chargement image {chemin}: {e}")
+            return None
+
+
+    client.get_candidats()
+    candidats = client.read()
+
+    def creer_action_vote(candidat):
+        def action():
+            client.vote(candidat)
+            print(f"A voté pour {candidat}")
+        return action
+
+    client.get_candidats()
+    def set_candidats():
+        candidats = info
+
+        # Create candidate cards
+        for i, candidat in enumerate(candidats):
+            # Card Frame
+            card_frame = tk.Frame(
+                scrollable_frame,
+                bg=COLORS['card_bg'],
+                relief=tk.FLAT,
+                borderwidth=0
+            )
+            card_frame.pack(pady=10, padx=40, fill=tk.X)
+            
+            # Inner padding frame
+            inner_frame = tk.Frame(card_frame, bg=COLORS['card_bg'])
+            inner_frame.pack(padx=20, pady=15, fill=tk.BOTH)
+            
+            # Candidate number and name
+            name_frame = tk.Frame(inner_frame, bg=COLORS['card_bg'])
+            name_frame.pack(fill=tk.X, pady=(0, 10))
+            
+            number_label = tk.Label(
+                name_frame,
+                text=f"#{i+1}",
+                font=('Helvetica', 14, 'bold'),
+                bg=COLORS['card_bg'],
+                fg=COLORS['secondary']
+            )
+            number_label.pack(side=tk.LEFT, padx=(0, 10))
+            
+            name_label = tk.Label(
+                name_frame,
+                text=candidat,
+                font=('Helvetica', 16, 'bold'),
+                bg=COLORS['card_bg'],
+                fg=COLORS['text_light'],
+                anchor='w'
+            )
+            name_label.pack(side=tk.LEFT, fill=tk.X)
+            
+            # Vote button
+            vote_btn = create_rounded_button(
+                inner_frame,
+                text="✓ VOTER",
+                command=creer_action_vote(candidat),
+                bg_color=COLORS['primary'],
+                hover_color=COLORS['primary_hover'],
+                width=15
+            )
+            vote_btn.pack(anchor=tk.E)
+            
+            # Hover effect for card
+            def on_card_enter(e, frame=card_frame):
+                frame['bg'] = COLORS['card_hover']
+                for child in frame.winfo_children():
+                    if isinstance(child, tk.Frame):
+                        child['bg'] = COLORS['card_hover']
+                        for subchild in child.winfo_children():
+                            if isinstance(subchild, (tk.Frame, tk.Label)):
+                                subchild['bg'] = COLORS['card_hover']
+            
+            def on_card_leave(e, frame=card_frame):
+                frame['bg'] = COLORS['card_bg']
+                for child in frame.winfo_children():
+                    if isinstance(child, tk.Frame):
+                        child['bg'] = COLORS['card_bg']
+                        for subchild in child.winfo_children():
+                            if isinstance(subchild, (tk.Frame, tk.Label)):
+                                subchild['bg'] = COLORS['card_bg']
+            
+            card_frame.bind("<Enter>", on_card_enter)
+            card_frame.bind("<Leave>", on_card_leave)
+            for widget in [inner_frame, name_frame, number_label, name_label]:
+                widget.bind("<Enter>", on_card_enter)
+                widget.bind("<Leave>", on_card_leave)
+        
+        canvas.pack(side="left", fill="both", expand=True, padx=0, pady=0)
+        scrollbar.pack(side="right", fill="y")
+
+    func = set_candidats
     """Crée et affiche la fenêtre principale avec les candidats stylisés."""
 
     fenetre_principale = tk.Tk()
@@ -108,7 +218,7 @@ def ouvrir_fenetre_principale():
     subtitle_label.pack()
 
     # Candidats Section
-    candidats = ["Ariana Grande", "Bob Lennon", "Charlie Chaplin", "David Bowie"]
+    candidats = []
     
     # Create scrollable frame for candidates
     canvas = tk.Canvas(fenetre_principale, bg=COLORS['bg_dark'], highlightthickness=0)
@@ -127,85 +237,8 @@ def ouvrir_fenetre_principale():
         return lambda: [
             print(f"✓ A voté pour {candidat}"),
             messagebox.showinfo("Vote enregistré", f"Votre vote pour {candidat} a été enregistré avec succès!"),
-            fenetre_principale.destroy()
+            None
         ]
-    
-    # Create candidate cards
-    for i, candidat in enumerate(candidats):
-        # Card Frame
-        card_frame = tk.Frame(
-            scrollable_frame,
-            bg=COLORS['card_bg'],
-            relief=tk.FLAT,
-            borderwidth=0
-        )
-        card_frame.pack(pady=10, padx=40, fill=tk.X)
-        
-        # Inner padding frame
-        inner_frame = tk.Frame(card_frame, bg=COLORS['card_bg'])
-        inner_frame.pack(padx=20, pady=15, fill=tk.BOTH)
-        
-        # Candidate number and name
-        name_frame = tk.Frame(inner_frame, bg=COLORS['card_bg'])
-        name_frame.pack(fill=tk.X, pady=(0, 10))
-        
-        number_label = tk.Label(
-            name_frame,
-            text=f"#{i+1}",
-            font=('Helvetica', 14, 'bold'),
-            bg=COLORS['card_bg'],
-            fg=COLORS['secondary']
-        )
-        number_label.pack(side=tk.LEFT, padx=(0, 10))
-        
-        name_label = tk.Label(
-            name_frame,
-            text=candidat,
-            font=('Helvetica', 16, 'bold'),
-            bg=COLORS['card_bg'],
-            fg=COLORS['text_light'],
-            anchor='w'
-        )
-        name_label.pack(side=tk.LEFT, fill=tk.X)
-        
-        # Vote button
-        vote_btn = create_rounded_button(
-            inner_frame,
-            text="✓ VOTER",
-            command=creer_action_vote(candidat),
-            bg_color=COLORS['primary'],
-            hover_color=COLORS['primary_hover'],
-            width=15
-        )
-        vote_btn.pack(anchor=tk.E)
-        
-        # Hover effect for card
-        def on_card_enter(e, frame=card_frame):
-            frame['bg'] = COLORS['card_hover']
-            for child in frame.winfo_children():
-                if isinstance(child, tk.Frame):
-                    child['bg'] = COLORS['card_hover']
-                    for subchild in child.winfo_children():
-                        if isinstance(subchild, (tk.Frame, tk.Label)):
-                            subchild['bg'] = COLORS['card_hover']
-        
-        def on_card_leave(e, frame=card_frame):
-            frame['bg'] = COLORS['card_bg']
-            for child in frame.winfo_children():
-                if isinstance(child, tk.Frame):
-                    child['bg'] = COLORS['card_bg']
-                    for subchild in child.winfo_children():
-                        if isinstance(subchild, (tk.Frame, tk.Label)):
-                            subchild['bg'] = COLORS['card_bg']
-        
-        card_frame.bind("<Enter>", on_card_enter)
-        card_frame.bind("<Leave>", on_card_leave)
-        for widget in [inner_frame, name_frame, number_label, name_label]:
-            widget.bind("<Enter>", on_card_enter)
-            widget.bind("<Leave>", on_card_leave)
-    
-    canvas.pack(side="left", fill="both", expand=True, padx=0, pady=0)
-    scrollbar.pack(side="right", fill="y")
     
     # Footer with quit button
     footer_frame = tk.Frame(fenetre_principale, bg=COLORS['bg_dark'], height=80)
@@ -222,6 +255,7 @@ def ouvrir_fenetre_principale():
     )
     bouton_quitter.pack(pady=15)
 
+    update()
     fenetre_principale.mainloop()
 
 
