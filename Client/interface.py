@@ -11,6 +11,12 @@ def f():
 func = f
 
 def ouvrir_fenetre_principale():
+    def update():
+        global info
+        info = client.read()
+        if(info != "E"):
+           func()
+        login_fenetre.after(500, update)
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
 
     def action_bouton1():
@@ -48,18 +54,21 @@ def ouvrir_fenetre_principale():
     def creer_action_vote(candidat):
         client.vote(candidat)
         return lambda: print(f"A voté pour {candidat}")
+
     client.get_candidats()
-    candidats = client.read()
-    print(candidats)
-    for candidat in candidats:
-        btn = tk.Button(
-            fenetre_principale,
-            text=f"Voter pour {candidat}",
-            command=creer_action_vote(candidat),
-            padx=10,
-            pady=5
-        )
-        btn.pack(pady=5, fill="x", padx=50)
+    def set_candidats():
+        candidats = client.read()
+        print(candidats)
+        for candidat in candidats:
+            btn = tk.Button(
+                fenetre_principale,
+                text=f"Voter pour {candidat}",
+                command=creer_action_vote(candidat),
+                padx=10,
+                pady=5
+            )
+            btn.pack(pady=5, fill="x", padx=50)
+    func = set_candidats
 
     bouton_quitter = tk.Button(
         fenetre_principale, 
