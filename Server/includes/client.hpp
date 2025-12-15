@@ -4,7 +4,7 @@
 #include <server_hooks.hpp>
 #include <server.hpp>
 #include <command_handler.hpp>
-#include <rsa.hpp>
+#include <paillier.hpp>
 
 #include <algorithm>
 #include <ctime>
