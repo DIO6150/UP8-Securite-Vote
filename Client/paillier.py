@@ -1,6 +1,7 @@
 import random
 import hashlib
 
+
 def pgcd(a, b):
     while b:
         a, b = b, a % b
@@ -8,8 +9,8 @@ def pgcd(a, b):
 
 
 def powmod(base, exp, mod):
-	return pow(base,exp,mod)
-"""    res = 1
+    return pow(base, exp, mod)
+    """res = 1
     base = base % mod
     while exp > 0:
         if exp % 2 == 1:
@@ -32,99 +33,6 @@ def modinv(a, m):
         )
 
     return u1 % m
-
-
-def ppcm(a, b):
-    return abs(a * b) // pgcd(a, b)
-
-
-def is_prime(n, k=10):
-    """Test de primalité de Miller-Rabin
-
-    Args:
-        n: Nombre à tester
-        k: Nombre d'itérations
-
-    Returns:
-        True si n est premier
-    """
-    if n < 2:
-        return False
-    if n == 2 or n == 3:
-        return True
-    if n % 2 == 0:
-        return False
-
-    r, d = 0, n - 1
-    while d % 2 == 0:
-        r += 1
-        d //= 2
-
-    for _ in range(k):
-        a = random.randrange(2, n - 1)
-        x = powmod(a, d, n)
-
-        if x == 1 or x == n - 1:
-            continue
-
-        for _ in range(r - 1):
-            x = powmod(x, 2, n)
-            if x == n - 1:
-                break
-        else:
-            return False
-
-    return True
-
-
-def generate_prime(bits):
-    """Génère un nombre premier de taille donnée
-
-    Args:
-        bits: Nombre de bits du nombre premier
-
-    Returns:
-        Un nombre premier de "bits" bits
-    """
-    while True:
-        n = random.getrandbits(bits)
-        n |= (1 << bits - 1) | 1  # impair et de taille bits
-        if is_prime(n):
-            return n
-
-
-def generate_keypair(bits=2048):
-    """Génère une paire de clés Paillier
-
-    Args:
-        bits: Taille en bits de chaque nombre premier
-
-    Returns:
-        (public_key, private_key) avec:
-            public_key = (n, g)
-            private_key = (lambda, mu)
-    """
-    # Générer deux nombres premiers distincts
-    p = generate_prime(bits)
-    q = generate_prime(bits)
-    while p == q:
-        q = generate_prime(bits)
-
-    n = p * q
-    g = n + 1
-    lambda_val = ppcm(p - 1, q - 1)
-
-    def l(x):
-        return (x - 1) // n
-
-    n_squared = n * n
-    g_lambda = powmod(g, lambda_val, n_squared)
-    mu = modinv(l(g_lambda), n)
-
-    public_key = (n, g)
-    private_key = (lambda_val, mu)
-
-    return public_key, private_key
 
 
 def paillier_encrypt(m, public_key):
@@ -150,46 +58,6 @@ def paillier_encrypt(m, public_key):
     c = (powmod(g, m, n_squared) * powmod(r, n, n_squared)) % n_squared
 
     return c, r
-
-
-def paillier_decrypt(c, public_key, private_key):
-    """Déchiffre un chiffré Paillier
-
-    Args:
-        c: Chiffré
-        public_key: Clé publique (n, g)
-        private_key: Clé privée (lambda, mu)
-
-    Returns:
-        Message déchiffré
-    """
-    n, g = public_key
-    lambda_val, mu = private_key
-    n_squared = n * n
-
-    def l(x):
-        return (x - 1) // n
-
-    # m = L(c^lambda mod n^2) * mu mod n
-    c_lambda = powmod(c, lambda_val, n_squared)
-    m = (l(c_lambda) * mu) % n
-
-    return m
-
-
-def paillier_add(c1, c2, public_key):
-    """Addition homomorphe de deux chiffrés
-
-    Args:
-        c1, c2: Chiffrés Paillier
-        public_key: Clé publique (n, g)
-
-    Returns:
-        c = Enc(m1 + m2) avec c1 = Enc(m1) et c2 = Enc(m2)
-    """
-    n, g = public_key
-    n_squared = n * n
-    return (c1 * c2) % n_squared
 
 
 def zkp_prove(c, m, r, public_key, valid_values=[0, 1], t=128):
@@ -280,68 +148,3 @@ def zkp_prove(c, m, r, public_key, valid_values=[0, 1], t=128):
         'e': e,
         'valid_values': valid_values
     }
-
-
-def zkp_verify(c, proof, public_key, t=128):
-    """Vérifie une preuve ZKP
-
-    Args:
-        c: Chiffré
-        proof: Preuve générée par zkp_prove
-        public_key: Clé publique (n, g)
-        t: Taille du challenge en bits
-
-    Returns:
-        True si la preuve est valide, False sinon
-    """
-    n, g = public_key
-    n_squared = n * n
-
-    a_values = proof['a_values']
-    z_values = proof['z_values']
-    e_values = proof['e_values']
-    e_total = proof['e']
-    valid_values = proof['valid_values']
-
-    ell = len(a_values)
-
-    # Recalcul du challenge
-    hash_input = ''.join(str(a) for a in a_values).encode()
-    hash_output = hashlib.sha256(hash_input).hexdigest()
-    e_computed = int(hash_output, 16) % (2**t)
-
-    if e_computed != e_total:
-        return False
-
-    # e = e_1 + ... + e_ℓ mod 2^t
-    sum_e = sum(e_values) % (2**t)
-    if sum_e != e_total:
-        return False
-
-    # Pour chaque i, vérifier z_i^n = a_i * (c * g^(-m_i))^e_i mod n^2
-    for i in range(ell):
-        m_i = valid_values[i]
-
-        # z_i^n mod n^2
-        z_n = powmod(z_values[i], n, n_squared)
-
-        # g^m_i mod n^2
-        g_m = powmod(g, m_i, n_squared)
-
-        # g^(-m_i) = (g^m_i)^(-1) mod n^2
-        g_minus_m = modinv(g_m, n_squared)
-
-        # (c * g^(-m_i)) mod n^2
-        term = (c * g_minus_m) % n_squared
-
-        # (c * g^(-m_i))^e_i mod n^2
-        term_e = powmod(term, e_values[i], n_squared)
-
-        # a_i * (c * g^(-m_i))^e_i mod n^2
-        right_side = (a_values[i] * term_e) % n_squared
-
-        # Vérification
-        if z_n != right_side:
-            return False
-
-    return True
