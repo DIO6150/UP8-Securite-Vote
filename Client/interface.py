@@ -74,7 +74,7 @@ def ouvrir_fenetre_principale():
         bouton_quitter.pack(pady=20, fill="x", padx=50)
     func = set_candidats
 
-
+    update()
     fenetre_principale.mainloop()
 
 

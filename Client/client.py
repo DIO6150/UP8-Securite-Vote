@@ -94,6 +94,7 @@ def vote(vote):
 			msg+=' '+str(paillier_decrypt(1,cle_paillier[0]))
 		else:
 			msg+=' '+str(paillier_decrypt(0,cle_paillier[0]))
+	print(msg)
 	send(msg)
 	search="VOTE"
 
