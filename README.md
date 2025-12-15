@@ -169,6 +169,13 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
     * `srv: RETURN CODE SEND_KEY O2` (la clef a été validée par le serveur)
     * `srv: RETURN CODE SEND_KEY E8` (la clef n'a pas été validée par le serveur)
 
+#### Client envoie sa clef de paillier
+
+* **Action :**
+    * `clt: SEND_KEY_PAILLIER <n> <g>`
+        * `n` partie n de la clé
+        * `g` partie g de la clé
+
 #### Se connecter
 
 * **Action :**

@@ -3,18 +3,24 @@ import client
 from tkinter import messagebox
 from PIL import Image, ImageTk
 import queue
-import asyncio
 
 promise = queue.Queue()
-loop = asyncio.new_event_loop() 
-asyncio.set_event_loop(loop)
 info = ""
+def f():
+	return None
+func = f
 
 def ouvrir_fenetre_principale():
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
 
+    def action_bouton1():
+        print("Le Bouton 1 a été cliqué !")
+
+    def action_bouton2():
+        print("Action spéciale du Bouton 2 !")
+
     fenetre_principale = tk.Tk()
-    fenetre_principale.title("Système sécurisé de vote")
+    fenetre_principale.title("Mon interface à 3 boutons")
     fenetre_principale.geometry("400x300")
 
     def charger_icone(chemin, taille=(30, 30)):
@@ -26,20 +32,18 @@ def ouvrir_fenetre_principale():
             print(f"Erreur chargement image {chemin}: {e}")
             return None
 
-    ##client.candidats()
+    icone_quit = charger_icone("quit.png")
+    ##client.get_candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-
+    choix_vote = "01"
+    if choix_vote == "O1":
+        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+    else:
+        messagebox.showinfo("Erreur inconnue")
 
     def creer_action_vote(candidat):
-        def callback():
-            ##client.vote(candidat)
-            print(f"A voté pour {candidat}")
-            choix_vote = "O1"
-            if choix_vote == "O1":
-                messagebox.showinfo("Vote", "Votre vote a été pris en compte")
-            else:
-                messagebox.showinfo("Erreur inconnue")
-        return callback
+        ##client.vote(candidat)
+        return lambda: print(f"A voté pour {candidat}")
 
     for candidat in candidats:
         btn = tk.Button(
@@ -53,12 +57,14 @@ def ouvrir_fenetre_principale():
 
     bouton_quitter = tk.Button(
         fenetre_principale, 
-        text="✗ Quitter", 
+        text="Quitter", 
         command=fenetre_principale.destroy,
+        image=icone_quit,
         compound="left",
         padx=10,
         bg="#ffcccc"
     )
+    bouton_quitter.image = icone_quit
     bouton_quitter.pack(pady=20, fill="x", padx=50)
 
     fenetre_principale.mainloop()
@@ -75,15 +81,15 @@ def creer_fenetre_login():
         global info
         info = client.read()
         if(info != "E"):
-           loop.call_soon(loop.stop)
-           loop.run_forever()
+           func()
         login_fenetre.after(500, update)
     def verifier_login():
         global info
+        global func
         identifiant = entry_id.get()
         mdp = entry_mdp.get()
         client.login(identifiant, mdp)
-        async def log():
+        def log():
            login = False
            code = info
            print(code)
@@ -109,7 +115,7 @@ def creer_fenetre_login():
               ouvrir_fenetre_principale()
            else:
               label_erreur.config(text="Identifiant incorrect", fg="red")
-        asyncio.ensure_future(log())
+        func = log
 
     tk.Label(login_fenetre, text="Identifiant:").grid(row=0, column=0, padx=10, pady=10)
     entry_id = tk.Entry(login_fenetre)
@@ -129,23 +135,4 @@ def creer_fenetre_login():
     login_fenetre.mainloop()
 
 
-def check_connection():
-    """Tente de se connecter au serveur. Si échec, affiche un message et réessaie."""
-    if client.connect():
-        creer_fenetre_login()
-    else:
-        wait_window = tk.Tk()
-        wait_window.title("Connexion...")
-        wait_window.geometry("400x150")
-        
-        lbl = tk.Label(wait_window, text="Connexion échouée...\nNouvel essai dans 3 secondes", font=("Arial", 12))
-        lbl.pack(expand=True)
-        
-        def retry():
-            wait_window.destroy()
-            check_connection()
-            
-        wait_window.after(3000, retry)
-        wait_window.mainloop()
-
-check_connection()
+creer_fenetre_login()
