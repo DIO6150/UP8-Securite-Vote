@@ -32,7 +32,7 @@ def ouvrir_fenetre_principale():
             print(f"Erreur chargement image {chemin}: {e}")
             return None
 
-    icone_quit = charger_icone("quit.png")
+
     ##client.get_candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
     choix_vote = "01"
@@ -57,14 +57,11 @@ def ouvrir_fenetre_principale():
 
     bouton_quitter = tk.Button(
         fenetre_principale, 
-        text="Quitter", 
+        text="❌ Quitter", 
         command=fenetre_principale.destroy,
-        image=icone_quit,
-        compound="left",
         padx=10,
         bg="#ffcccc"
     )
-    bouton_quitter.image = icone_quit
     bouton_quitter.pack(pady=20, fill="x", padx=50)
 
     fenetre_principale.mainloop()
