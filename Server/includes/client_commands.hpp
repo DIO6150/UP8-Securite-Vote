@@ -43,8 +43,7 @@ static inline void vote_end (const std::vector<std::string> & args, CommandConte
 	for (int i = 0; i < sum.size (); ++i) {
 		for (auto & [id, client] : context.clients) {
 			if (client.voted) {
-				mpz_mul (sum[i].get_mpz_t (), sum[i].get_mpz_t (), client.vote[i].get_mpz_t ());
-				mpz_mod (sum[i].get_mpz_t (), sum[i].get_mpz_t (), context.vote.pallier_pub_key.get_mpz_t ());
+				paillier::add (sum[i], client.vote[i], context.vote.pallier);
 			}
 		}
 	}
@@ -191,10 +190,36 @@ static inline void client_get_candidates (const std::vector<std::string> & args,
 	std::string candidates = "";
 
 	for (const auto & candidat : context.vote.candidates) {
-		candidates = StrArgs ("#1# #2#", candidates, candidat);
+		candidates = StrArgs ("#1#/#2#", candidates, candidat);
 	}
 
-	candidates = StrArgs ("RETURN CHAR GET_CANDIDATES#1#", candidates);
+	candidates = StrArgs ("RETURN CHAR GET_CANDIDATES #1#", candidates);
 
 	context.server.Send (context.client.socket, candidates);
+}
+
+static inline void client_send_pallier_key (const std::vector<std::string> & args, CommandContext & context) {
+	if (!context.client.IsAdmin ()) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_KEY_PALLIER E6");
+		return;
+	}
+
+	if (args.size () != 2) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_KEY_PALLIER E4");
+		return;
+	}
+
+	if (args[0].size () != 2048 / 8 || args[1].size () != 2048 / 8) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_KEY_PALLIER E7");
+		return;
+	}
+
+	mpz_class n;
+	mpz_class g;
+	
+	n.set_str (args[0], 10);
+	g.set_str (args[1], 10);
+
+	context.vote.pallier = paillier::PublicKey {n, g};
+	Server::Log ("{C:BLUD}(DEBUG) paillier key received");
 }
