@@ -29,6 +29,21 @@ def ouvrir_fenetre_principale():
         messagebox.showinfo("Vote", "Votre vote a été pris en compte")
     else:
         messagebox.showinfo("Erreur inconnue")
+    fenetre_principale.title("Système sécurisé de vote")
+    fenetre_principale.geometry("400x300")
+
+    def charger_icone(chemin, taille=(30, 30)):
+        try:
+            img = Image.open(chemin)
+            img = img.resize(taille, Image.Resampling.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception as e:
+            print(f"Erreur chargement image {chemin}: {e}")
+            return None
+
+
+    client.get_candidats()
+    candidats = client.read()
 
     def creer_action_vote(candidat):
         def action():
