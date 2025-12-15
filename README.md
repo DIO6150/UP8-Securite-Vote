@@ -111,12 +111,13 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 | **O1** | Succès | Vote pris en compte |
 | **O2** | Succès | Clef validée par le serveur |
 | **O3** | Succès | Clef reçue par le serveur |
+| **O5** | Succès | ZKP validée |
 | **E0** | Erreur | Commande non reconnue |
 | **E1** | Erreur | Utilisateur non identifié |
 | **E2** | Erreur | Nom d'utilisateur invalide |
 | **E3** | Erreur | Mot de passe invalide |
 | **E4** | Erreur | Nombre d'arguments invalides |
-| **E5** | Erreur | Chiffré invalide (Échec ZKP) |
+| **E5** | Erreur | Échec ZKP |
 | **E6** | Erreur | Client n'est pas administrateur |
 | **E7** | Erreur | La clé envoyée par le client n'est pas valide |
 | **E8** | Erreur | La preuve de clé n'est pas valide |
@@ -204,7 +205,14 @@ Réponse typique du serveur : `RETURN <DATA_TYPE> <COMMAND> <DATA>`
 * **Réponse :**
     * `srv: RETURN CODE VOTE O1` (Pris en compte)
     * `srv: RETURN CODE VOTE E4` (Nombre de candidats invalides)
-    * `srv: RETURN CODE VOTE E5` (Erreur ZKP)
+
+#### Preuve ZKP
+
+* **Action :**
+    * `clt: SEND_ZKP <index> <n> <a_1> ... <a_n> <z_1> ... <z_n> <e_1> ... <e_n> <valid_value_1> ... <valid_values_n> <e>`
+* **Réponse :**
+    * `srv: RETURN CODE VOTE O4` (zkp validée)
+    * `srv: RETURN CODE VOTE E5` (zkp invalide)
 
 #### Serveur envoie le résultat des votes
 

@@ -40,9 +40,15 @@ static inline void vote_end (const std::vector<std::string> & args, CommandConte
 	std::vector<mpz_class> sum;
 	sum.reserve (context.vote.candidates.size ());
 
+	for (auto & [id, client] : context.clients) {
+		for (int i = 0; i < context.client.vote.size (); ++i) {
+			client.aproved = client.aproved && paillier::zkp_verify (context.client.vote[i], context.client.proofs[i], context.vote.pallier);
+		}
+	}
+
 	for (int i = 0; i < sum.size (); ++i) {
 		for (auto & [id, client] : context.clients) {
-			if (client.voted) {
+			if (client.voted && client.aproved) {
 				paillier::add (sum[i], client.vote[i], context.vote.pallier);
 			}
 		}
@@ -67,17 +73,24 @@ static inline void client_stop(const std::vector<std::string> & args, CommandCon
 
 static inline void client_vote (const std::vector<std::string> & args, CommandContext & context) {
 	if (!context.client.IsAuth ()) {
-		context.server.Send (context.client.socket, "ERROR CODE VOTE E1");
+		context.server.Send (context.client.socket, "RETURN CODE VOTE E1");
 		return;
 	}
-
-	// TODO : PAILLIER GOES HERE
-
+	
 	size_t candidate_count = args.size ();
-
+	
 	if (candidate_count != context.vote.candidates.size ()) {
-		context.server.Send (context.client.socket, "ERROR CODE VOTE E4");
+		context.server.Send (context.client.socket, "RETURN CODE VOTE E4");
 	}
+
+	context.client.voted = true;
+	context.client.vote.resize (args.size ());
+	
+	for (int index = 0; index < context.client.vote.size (); ++index) {
+		context.client.vote[index].set_str (args[index], 10);
+	}
+
+	context.server.Send (context.client.socket, "RETURN CODE VOTE O1");
 }
 
 static inline void client_login (const std::vector<std::string> & args, CommandContext & context) {
@@ -223,3 +236,55 @@ static inline void client_send_pallier_key (const std::vector<std::string> & arg
 	context.vote.pallier = paillier::PublicKey {n, g};
 	Server::Log ("{C:BLUD}(DEBUG) paillier key received");
 }
+
+static inline void client_send_zkp (const std::vector<std::string> & args, CommandContext & context) {
+	if (!context.client.IsAdmin ()) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E6");
+		return;
+	}
+
+	int index;
+	int n;
+
+	try {
+		index	= std::stoi (args[0]);
+		n	= std::stoi (args[1]);
+	}
+	catch (const std::invalid_argument) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E5");
+		return;
+	}
+
+	if (index >= context.vote.candidates.size ()) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E5");
+		return;
+	}
+
+	context.client.proofs.resize (args.size ());
+
+	for (int i = 0; i < n; ++i) {
+		if (context.client.proofs[index].a_values[i].set_str (args[2 + 0 * n + i], 10) != 0) {
+			context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E5");
+			return;
+		}
+
+		if (context.client.proofs[index].z_values[i].set_str (args[2 + 1 * n + i], 10) != 0)  {
+			context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E5");
+			return;
+		}
+
+		if (context.client.proofs[index].z_values[i].set_str (args[2 + 2 * n + i], 10) != 0)  {
+			context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E5");
+			return;
+		}
+	}
+
+	if (context.client.proofs[index].e.set_str (args[2 + 3 * n], 10) != 0) {
+		context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP E5");
+		return;
+	}
+
+	context.server.Send (context.client.socket, "RETURN CODE SEND_ZKP O4");
+
+}
+
