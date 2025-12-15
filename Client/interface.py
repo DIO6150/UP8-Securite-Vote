@@ -144,7 +144,4 @@ def creer_fenetre_login():
 
 
 creer_fenetre_login()
-fenetre.mainloop()
 
-
-creer_fenetre_login()
