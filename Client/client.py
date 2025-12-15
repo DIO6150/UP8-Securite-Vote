@@ -54,7 +54,8 @@ def read():
 					rt = int(mots[3])
 				elif mots[1] == "CHAR":
 					if mots[2] == "GET_CANDIDATES":
-						candidats = mots[3].split('/')
+						global candidats
+						candidats = mots[3].split('/')[1:]
 						rt = candidats
 					else:
 						rt = mots[3]
@@ -89,12 +90,13 @@ def get_candidats():
 def vote(vote):
 	global search
 	msg = "VOTE"
+	print(candidats)
 	for loop in range(len(candidats)):
 		if candidats[loop] == vote:
-			msg+=' '+str(paillier_decrypt(1,cle_paillier[0]))
+			msg+=' '+str(paillier.paillier_encrypt(1,cle_paillier[0])[0])
 		else:
-			msg+=' '+str(paillier_decrypt(0,cle_paillier[0]))
-	print(msg)
+			msg+=' '+str(paillier.paillier_encrypt(0,cle_paillier[0])[0])
+	print("vote "+str(msg))
 	send(msg)
 	search="VOTE"
 
