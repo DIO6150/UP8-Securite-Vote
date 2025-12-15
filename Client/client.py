@@ -10,9 +10,9 @@ def send(msg):
 		msg_bytes = msg.to_bytes(4, 'big')
 	else:
 		msg_bytes = msg.encode('ASCII')
-	msg_chiffre = chiffrement.rsa(server_cle_public,msg_bytes)
-	size = len(msg_chiffre).to_bytes(4, 'big')
-	client.sendall(size + msg_chiffre)
+	size = len(msg_bytes).to_bytes(4, 'big')
+
+	client.sendall(size + msg_bytes)
 
 def listen():
 	while(True):
@@ -45,7 +45,6 @@ def read():
 	while(not responses.empty()):
 		message = responses.get_nowait()
 		mots = message.upper().split()
-		print("debug " + str(mots) + " " + search)
 		if mots[0] == "RETURN":
 			if mots[2] == search:
 				if mots[1] == "CODE":
@@ -59,9 +58,10 @@ def read():
 						rt = candidats
 					else:
 						rt = mots[3]
+			elif mots[2] == "VOTE":
+				return mots[3]
 		elif mots[0] == "SEND_KEY":
 			cle_serv = mots[1]
-			print(cle_serv)
 			send("SEND_KEY "+str(cle_public))
 			search = mots[0]
 		elif mots[0] == "SEND_KEY_PAILLIER":
@@ -70,6 +70,7 @@ def read():
 		elif mots[0] == "SEND_KEY_PROOF":
 			send("SEND_KEY_PROOF " + str(int(mots[1])+1))
 			search = mots[0]
+
 	return rt
 
 def login(nom, mdp):
@@ -79,7 +80,6 @@ def login(nom, mdp):
 	search = "LOGIN"
 
 def disconnect():
-	print("client fermer")
 	client.close()
 
 def get_candidats():
@@ -87,16 +87,37 @@ def get_candidats():
 	send("GET_CANDIDATES")
 	search = "GET_CANDIDATES"
 
+def zkp(c, m, r):
+	ZKP = paillier.zkp_prove(c,m,r, cle_paillier[0])
+
+	msg = "SEND_ZKP " + str(len(ZKP['a_values']))
+
+	for a in ZKP['a_values']:
+		msg += " " + str(a)
+	for z in ZKP['z_values']:
+		msg += " " + str(z)
+	for e_val in ZKP['e_values']:
+		msg += " " + str(e_val)
+	for v in ZKP['valid_values']:
+		msg += " " + str(v)
+
+	msg += " " + str(ZKP['e'])
+	send(msg)
+
 def vote(vote):
 	global search
 	msg = "VOTE"
-	print(candidats)
 	for loop in range(len(candidats)):
 		if candidats[loop] == vote:
-			msg+=' '+str(paillier.paillier_encrypt(1,cle_paillier[0])[0])
+			p = paillier.paillier_encrypt(1,cle_paillier[0])
+			zkp(p[0], 1, p[1])
+			msg += " " + str(p[0])
 		else:
-			msg+=' '+str(paillier.paillier_encrypt(0,cle_paillier[0])[0])
-	print("vote "+str(msg))
-	send(msg)
+			p = paillier.paillier_encrypt(0,cle_paillier[0])
+			zkp(p[0], 0, p[1])
+			msg += " " + str(p[0])
 	search="VOTE"
+	send(msg)
+
+
 
