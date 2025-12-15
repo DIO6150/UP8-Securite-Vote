@@ -33,12 +33,16 @@ struct Client {
 	std::vector<mpz_class>	vote;
 	bool			voted;
 
+	std::vector<paillier::ZKProof>	proofs;
+	bool				aproved;
+
 	Client (int socket) : 
 		socket {socket}, 
 		is_admin {false}, 
 		last_activity {-1}, 
 		pub_key {0},
-		status {ConnectionState::NO_AUTH} {
+		status {ConnectionState::NO_AUTH},
+		aproved {false} {
 
 	}
 
