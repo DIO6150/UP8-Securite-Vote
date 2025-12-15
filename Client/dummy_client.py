@@ -14,9 +14,11 @@ def send (usr_msg):
 
 run = True
 
+cle_public=1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111
+
 while (run):
 
-    read_sockets, _, _ = select.select([client, sys.], [], [])
+    read_sockets, _, _ = select.select([client, sys.stdin], [], [])
 
     for source in read_sockets:
         # 1. Incoming message from server
@@ -43,6 +45,10 @@ while (run):
             if msg == "exit\n":
                 run = False
                 break
+
+            if msg == "send_key\n":
+                send ("SEND_KEY " + str(cle_public))
+                continue
             send (msg)
 
 client.close ()

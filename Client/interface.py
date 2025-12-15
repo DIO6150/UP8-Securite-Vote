@@ -13,14 +13,8 @@ info = ""
 def ouvrir_fenetre_principale():
     """Crée et affiche la fenêtre principale avec les 3 boutons et leurs icônes."""
 
-    def action_bouton1():
-        print("Le Bouton 1 a été cliqué !")
-
-    def action_bouton2():
-        print("Action spéciale du Bouton 2 !")
-
     fenetre_principale = tk.Tk()
-    fenetre_principale.title("Mon interface à 3 boutons")
+    fenetre_principale.title("Système sécurisé de vote")
     fenetre_principale.geometry("400x300")
 
     def charger_icone(chemin, taille=(30, 30)):
@@ -32,19 +26,20 @@ def ouvrir_fenetre_principale():
             print(f"Erreur chargement image {chemin}: {e}")
             return None
 
-    icone_quit = charger_icone("quit.png")
     ##client.candidats()
     candidats = ["Ariana Grande","Bob Lennon","Charlie Chaplin","David Bowie"] ##client.read()
-    choix_vote = "O1"
-    if choix_vote == "O1":
-        messagebox.showinfo("Vote", "Votre vote a été pris en compte")
-    else:
-        messagebox.showinfo("Erreur inconnue")
 
 
     def creer_action_vote(candidat):
-        ##client.vote(candidat)
-        return lambda: print(f"A voté pour {candidat}")
+        def callback():
+            ##client.vote(candidat)
+            print(f"A voté pour {candidat}")
+            choix_vote = "O1"
+            if choix_vote == "O1":
+                messagebox.showinfo("Vote", "Votre vote a été pris en compte")
+            else:
+                messagebox.showinfo("Erreur inconnue")
+        return callback
 
     for candidat in candidats:
         btn = tk.Button(
@@ -58,14 +53,12 @@ def ouvrir_fenetre_principale():
 
     bouton_quitter = tk.Button(
         fenetre_principale, 
-        text="Quitter", 
+        text="✗ Quitter", 
         command=fenetre_principale.destroy,
-        image=icone_quit,
         compound="left",
         padx=10,
         bg="#ffcccc"
     )
-    bouton_quitter.image = icone_quit
     bouton_quitter.pack(pady=20, fill="x", padx=50)
 
     fenetre_principale.mainloop()
@@ -136,4 +129,23 @@ def creer_fenetre_login():
     login_fenetre.mainloop()
 
 
-creer_fenetre_login()
+def check_connection():
+    """Tente de se connecter au serveur. Si échec, affiche un message et réessaie."""
+    if client.connect():
+        creer_fenetre_login()
+    else:
+        wait_window = tk.Tk()
+        wait_window.title("Connexion...")
+        wait_window.geometry("400x150")
+        
+        lbl = tk.Label(wait_window, text="Connexion échouée...\nNouvel essai dans 3 secondes", font=("Arial", 12))
+        lbl.pack(expand=True)
+        
+        def retry():
+            wait_window.destroy()
+            check_connection()
+            
+        wait_window.after(3000, retry)
+        wait_window.mainloop()
+
+check_connection()

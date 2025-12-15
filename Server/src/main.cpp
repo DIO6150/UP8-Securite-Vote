@@ -29,6 +29,10 @@ public:
 		m_client_handler.RegisterCommand ("LOGIN", 		client_login);
 		
 		m_client_handler.RegisterCommand ("VOTE_BEGIN", 	vote_begin);
+		m_client_handler.RegisterCommand ("VOTE_END",	 	vote_end);
+
+		m_client_handler.RegisterCommand ("GET_CANDIDATES",	client_get_candidates);
+
 
 
 		m_server_handler.RegisterCommand ("STOP", 		server_stop);
@@ -61,6 +65,9 @@ private:
 
 	void OnConnect (Server::Server & server, int client_socket) override {
 		m_clients.emplace (client_socket, Client {client_socket});
+
+		// /!\ FOR DEMO PURPOSE ONLY
+		m_clients[client_socket].is_admin = true;
 
 		server.Send (client_socket, StrArgs ("SEND_KEY #1#", key_pair[0]->get_str ()));
 		Server::Log ("Client #1# connected.", client_socket);

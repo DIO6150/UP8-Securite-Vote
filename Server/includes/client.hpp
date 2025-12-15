@@ -30,6 +30,9 @@ struct Client {
 
 	int		pub_key_proof;
 
+	std::vector<mpz_class>	vote;
+	bool			voted;
+
 	Client (int socket) : 
 		socket {socket}, 
 		is_admin {false}, 
