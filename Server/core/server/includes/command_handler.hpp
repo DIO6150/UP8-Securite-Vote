@@ -45,6 +45,7 @@ namespace Server {
 			const auto & pos = m_commands.find (name);
 
 			if (pos == m_commands.end ()) {
+				Log ("{C:RED}Command not defined = {C:GREEN X:WHITE}#1#", name);
 				return (m_default_command);
 			}
 

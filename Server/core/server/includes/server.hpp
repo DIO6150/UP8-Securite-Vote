@@ -24,6 +24,25 @@
 #include <unordered_map>
 #include <vector>
 
+namespace Internal {
+	struct OverFlowRead {
+		bool overflow;
+		char * buffer;
+		size_t read_size;
+		size_t overflow_size;
+		size_t buffer_size;
+
+		OverFlowRead () :
+		overflow {false},
+		buffer {nullptr},
+		read_size {0},
+		overflow_size {0},
+		buffer_size {0} {
+
+		}
+	};
+}
+
 namespace Server {
 	class IServerHooks;
 
@@ -66,6 +85,8 @@ namespace Server {
 		std::mutex		m_run_mutex;
 		std::mutex		m_connection_queue_mutex;
 		
+		std::vector<Internal::OverFlowRead>	m_overflows;
+
 		void Listen ();
 
 		void AddClient (int fd);

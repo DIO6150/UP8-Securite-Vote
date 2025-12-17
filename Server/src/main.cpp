@@ -33,7 +33,9 @@ public:
 
 		m_client_handler.RegisterCommand ("GET_CANDIDATES",	client_get_candidates);
 		
-		m_client_handler.RegisterCommand ("SEND_KEY_PALLIER",	client_send_pallier_key);
+		m_client_handler.RegisterCommand ("SEND_KEY_PAILLIER",	client_send_pallier_key);
+
+		m_client_handler.RegisterCommand ("SEND_ZKP",		client_send_zkp);
 
 
 
@@ -50,7 +52,7 @@ private:
 
 		const auto & [name, tokens] = m_client_handler.GetTokens (request);
 
-		m_client_handler.Handle (name, tokens, {server, m_clients.at (client_socket), m_vote});
+		m_client_handler.Handle (name, tokens, {server, m_clients.at (client_socket), m_vote, m_clients});
 
 		Server::Log ("{C:BLUE}(DEBUG) #1# from [Client #2#]", request, client_socket);
 	}

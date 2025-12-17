@@ -38,18 +38,33 @@ static inline void vote_end (const std::vector<std::string> & args, CommandConte
 	context.vote.started = false;
 
 	std::vector<mpz_class> sum;
-	sum.reserve (context.vote.candidates.size ());
+	sum.resize (context.vote.candidates.size ());
 
 	for (auto & [id, client] : context.clients) {
+		client.aproved = true;
+
 		for (int i = 0; i < context.client.vote.size (); ++i) {
-			client.aproved = client.aproved && paillier::zkp_verify (context.client.vote[i], context.client.proofs[i], context.vote.pallier);
+			if (!paillier::zkp_verify (context.client.vote[i], context.client.proofs[i], context.vote.pallier)) {
+				client.aproved = false;
+				break;
+			}
 		}
 	}
 
 	for (int i = 0; i < sum.size (); ++i) {
+		sum[i].set_str ("1", 10);
 		for (auto & [id, client] : context.clients) {
+			if (client.voted) {
+				Server::Log ("#1# #2# #3# #4#", client.aproved, client.voted, client.vote[i].get_str (), sum[i].get_str ());
+			}
+
 			if (client.voted && client.aproved) {
-				paillier::add (sum[i], client.vote[i], context.vote.pallier);
+				sum[i] = paillier::add (sum[i], client.vote[i], context.vote.pallier);
+				Server::Log ("{C:YELLOW} #1#", sum[i].get_str ());
+			}
+
+			else if (!client.aproved) {
+				Server::Log ("not aproved, failed zkp");
 			}
 		}
 	}
@@ -222,7 +237,7 @@ static inline void client_send_pallier_key (const std::vector<std::string> & arg
 		return;
 	}
 
-	if (args[0].size () != 2048 / 8 || args[1].size () != 2048 / 8) {
+	if (args[0].size () != 1233 || args[1].size () != 1233) {
 		context.server.Send (context.client.socket, "RETURN CODE SEND_KEY_PALLIER E7");
 		return;
 	}
@@ -234,7 +249,7 @@ static inline void client_send_pallier_key (const std::vector<std::string> & arg
 	g.set_str (args[1], 10);
 
 	context.vote.pallier = paillier::PublicKey {n, g};
-	Server::Log ("{C:BLUD}(DEBUG) paillier key received");
+	Server::Log ("{C:BLUE}(DEBUG) paillier key received");
 }
 
 static inline void client_send_zkp (const std::vector<std::string> & args, CommandContext & context) {
@@ -260,7 +275,14 @@ static inline void client_send_zkp (const std::vector<std::string> & args, Comma
 		return;
 	}
 
-	context.client.proofs.resize (args.size ());
+	context.client.proofs.resize (context.vote.candidates.size ());
+
+	context.client.proofs[index].a_values.resize (n);
+	context.client.proofs[index].z_values.resize (n);
+	context.client.proofs[index].e_values.resize (n);
+	context.client.proofs[index].valid_values.resize (n);
+
+	Server::Log ("nombres d'args = #1#", args.size ());
 
 	for (int i = 0; i < n; ++i) {
 		if (context.client.proofs[index].a_values[i].set_str (args[2 + 0 * n + i], 10) != 0) {

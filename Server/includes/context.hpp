@@ -8,7 +8,7 @@ struct CommandContext {
 	Server::Server & server;
 	Client & client;
 	Vote   & vote;
-	std::unordered_map<int, Client> clients;
+	std::unordered_map<int, Client> & clients;
 };
 
 struct ServerCommandContext {

@@ -3,9 +3,11 @@
 #include <utils.hpp>
 
 #include <cstring>
+#include <limits.h>
+#include <signal.h>
 
 #define HEADER_SIZE 4
-#define MAX_BODY_SIZE 65536
+#define MAX_BODY_SIZE (INT_MAX)
 
 static void setup_server (const char * port, int & server) {
 	struct addrinfo 		hints, *gai, *ai;
@@ -64,6 +66,12 @@ namespace Server {
 		setup_server (port, m_server);
 		
 		Log ("Server created on port: #1#", port);
+
+		// Source - https://stackoverflow.com/a
+		// Posted by dvorak, modified by community. See post 'Timeline' for change history
+		// Retrieved 2025-12-17, License - CC BY-SA 4.0
+
+		//signal(SIGPIPE, SIG_IGN);
 	}
 
 	Server::~Server () {
@@ -141,45 +149,56 @@ namespace Server {
 
 				// Request Handler
 				if (client_poll.revents & POLLIN) {
-					m_handler->OnUpdate (*this, client_fd);
-					
-					
-					// Request Header
-					bzero (header_buffer, HEADER_SIZE);
-					n_bytes = read (client_fd, header_buffer, HEADER_SIZE);
-					if (!HeaderHandler (client_index, n_bytes, client_fd)) continue;
+					if (!m_overflows[client_index].overflow) {
+
+						m_handler->OnUpdate (*this, client_fd);
+						
+						
+						// Request Header
+						bzero (header_buffer, HEADER_SIZE);
+						n_bytes = read (client_fd, header_buffer, HEADER_SIZE);
+						if (!HeaderHandler (client_index, n_bytes, client_fd)) continue;
 
 
-					// Request Body
-					body_size = *(int*)header_buffer;
-					body_size = ntohl (body_size);
-					body_size = body_size >= MAX_BODY_SIZE ? MAX_BODY_SIZE : body_size;
-					
-					body_buffer = (char *) malloc (body_size + 1);
-					
-					poll (&client_poll, 1, 0);
-					if (!(client_poll.revents & POLLIN)) {
-						Log ("{C:RED}Error body is of size 0.");
+						// Request Body
+						body_size = *(int*)header_buffer;
+						body_size = ntohl (body_size);
+						body_size = body_size >= MAX_BODY_SIZE ? MAX_BODY_SIZE : body_size;
 						
-						close (client_fd);
-						m_handler->OnDisconnect (*this, client_fd);
-						RemoveClient (client_fd);
+						body_buffer = (char *) malloc (body_size + 1);
 						
-						free (body_buffer);
+						poll (&client_poll, 1, 0);
+						if (!(client_poll.revents & POLLIN)) {
+							Log ("{C:RED}Error body is of size 0.");
+							
+							close (client_fd);
+							m_handler->OnDisconnect (*this, client_fd);
+							RemoveClient (client_fd);
+							
+							free (body_buffer);
+							
+							continue;
+						}
 						
-						continue;
+						n_bytes = read (client_fd, body_buffer, body_size);
+						body_buffer[body_size] = '\0';
+						if (!BodyHandler (client_index, n_bytes, body_size, client_fd, body_buffer)) continue;
+
+
 					}
-					
-					n_bytes = read (client_fd, body_buffer, body_size);
-					if (!BodyHandler (client_index, n_bytes, body_size, client_fd, body_buffer)) continue;
-					body_buffer[body_size] = '\0';
 
+					else {
+						auto & overflower = m_overflows[client_index];
+
+						n_bytes = read (client_fd, overflower.buffer + overflower.read_size, overflower.overflow_size);
+						if (!BodyHandler (client_index, n_bytes, overflower.overflow_size, client_fd, body_buffer)) continue;
+						overflower.overflow = false;
+					}
 
 					// Request Handler
 					std::string request {body_buffer};
 					m_handler->OnRequest (*this, client_fd, request);
 					free (body_buffer);
-
 				}
 				
 				++client_index;
@@ -207,6 +226,7 @@ namespace Server {
 			m_observers.begin (),
 			m_observers.end (),
 			[this, &message](pollfd poll) {
+				Log ("sending message to #1#", poll.fd);
 				this->Send (poll.fd, message);
 			}
 		);
@@ -230,13 +250,14 @@ namespace Server {
 		header[2] = header_bytes[2];
 		header[3] = header_bytes[3];
 		
-		if (write (client, header_bytes, 4) <= 0) {
+
+		if (send (client, header_bytes, 4, MSG_NOSIGNAL) <= 0) {
 			Log ("{C:RED}Error: couldn't send header to client");
 			Log ("{C:RED}> #1#", std::strerror (errno));
 			return;
 		}
 
-		if (write (client, message.c_str (), message.length ()) <= 0) {
+		if (send (client, message.c_str (), message.length (), MSG_NOSIGNAL) <= 0) {
 			Log ("{C:RED}Error: couldn't send body to client");
 			Log ("{C:RED}> #1#", std::strerror (errno));
 			return;
@@ -294,16 +315,21 @@ namespace Server {
 	void Server::AddClient (int fd) {
 		m_observers_index	.emplace	(fd, m_observers.size ());
 		m_observers		.push_back	({fd, POLLIN});
+
+		m_overflows		.push_back 	({});
 	}
 
 	void Server::RemoveClient (int fd) {
-		int client_index 	= m_observers_index.at 	 (fd);
-		int last_fd 		= m_observers	   .back ().fd;
+		int client_index 			= m_observers_index.at 	 (fd);
+		int last_fd 				= m_observers	   .back ().fd;
 
 		if (client_index != m_observers.size () - 1) {
+			m_overflows[client_index] = m_overflows.back ();
 			m_observers[client_index] = m_observers.back ();
 			m_observers_index[last_fd] = client_index;
+
 		}
+		m_overflows.pop_back ();
 		m_observers.pop_back ();
 		m_observers_index.erase (fd);
 		
@@ -367,15 +393,27 @@ namespace Server {
 			return (false);
 		}
 		else if (bytes != body_size) {
-			Log ("{C:RED}Client sent wrong number of bytes (body)");
-			Log ("{C:RED}Read bytes: #1#; Expected bytes: #2#", bytes, body_size);
+			auto & overflower = m_overflows[client_index];
 
-			close (client_fd);
-			m_handler->OnDisconnect (*this, client_fd);
-			RemoveClient (client_fd);
+			if (!overflower.overflow) {	
+				Log ("{C:RED}Client sent wrong number of bytes (body)");
+				Log ("{C:RED}Read bytes: #1#; Expected bytes: #2#", bytes, body_size);
+				Log ("{C:RED}Trying to read in overflow mode");
+				
+				overflower.overflow = true;
+				overflower.buffer = body_buffer;
+				overflower.buffer_size = body_size;
+				overflower.read_size = bytes;
+				overflower.overflow_size = body_size - bytes;
+			}
 
-			free (body_buffer);
-			
+			else {
+				overflower.read_size += bytes;
+				overflower.overflow_size -= bytes;
+			}
+
+			++client_index;
+				
 			return (false);
 		}
 		

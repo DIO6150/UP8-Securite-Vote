@@ -42,6 +42,7 @@ struct Client {
 		last_activity {-1}, 
 		pub_key {0},
 		status {ConnectionState::NO_AUTH},
+		voted {false},
 		aproved {false} {
 
 	}
