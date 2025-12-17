@@ -88,10 +88,10 @@ def get_candidats():
 	send("GET_CANDIDATES")
 	search = "GET_CANDIDATES"
 
-def zkp(c, m, r):
+def zkp(index, c, m, r):
 	ZKP = paillier.zkp_prove(c,m,r, cle_paillier[0])
 
-	msg = "SEND_ZKP " + str(len(ZKP['a_values']))
+	msg = "SEND_ZKP " + str(index) + " " + str(len(ZKP['a_values']))
 
 	for a in ZKP['a_values']:
 		msg += " " + str(a)
@@ -112,11 +112,11 @@ def vote(vote):
 	for loop in range(len(candidats)):
 		if candidats[loop] == vote:
 			p = paillier.paillier_encrypt(1,cle_paillier[0])
-			zkp(p[0], 1, p[1])
+			zkp(loop, p[0], 1, p[1])
 			msg += " " + str(p[0])
 		else:
 			p = paillier.paillier_encrypt(0,cle_paillier[0])
-			zkp(p[0], 0, p[1])
+			zkp(loop, p[0], 0, p[1])
 			msg += " " + str(p[0])
 	search="VOTE"
 	send(msg)
