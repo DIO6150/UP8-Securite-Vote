@@ -9,8 +9,6 @@ def send(msg):
 	msg_bytes = msg.encode('ASCII')
 	size = int.to_bytes(len (msg), length=4, byteorder='big')
 
-	print ("taille " + str(int.from_bytes (size)))
-
 	client.sendall(size + msg_bytes)
 
 def listen():
@@ -46,6 +44,9 @@ def read():
 	while(not responses.empty()):
 		message = responses.get_nowait()
 		mots = message.upper().split()
+
+		print ("[Server] " + message)
+
 		if mots[0] == "RETURN":
 			if mots[2] == search:
 				if mots[1] == "CODE":
@@ -71,6 +72,14 @@ def read():
 		elif mots[0] == "SEND_KEY_PROOF":
 			send("SEND_KEY_PROOF " + str(int(mots[1])+1))
 			search = mots[0]
+		elif mots[0] == "SEND_VOTE_RESULT":
+			results = {}
+			i = 0
+			for c in mots[1::]:
+				results[i] = paillier.paillier_decrypt (int (c), cle_paillier[0], cle_paillier[1])
+				i = i + 1
+
+			print (results)
 
 	return rt
 
@@ -103,7 +112,6 @@ def zkp(index, c, m, r):
 		msg += " " + str(v)
 
 	msg += " " + str(ZKP['e'])
-	print (msg)
 	send(msg)
 
 def vote(vote):

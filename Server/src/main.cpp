@@ -53,8 +53,6 @@ private:
 		const auto & [name, tokens] = m_client_handler.GetTokens (request);
 
 		m_client_handler.Handle (name, tokens, {server, m_clients.at (client_socket), m_vote, m_clients});
-
-		Server::Log ("{C:BLUE}(DEBUG) #1# from [Client #2#]", request, client_socket);
 	}
 
 	void OnServerRequest (Server::Server & server, std::string & request) override {

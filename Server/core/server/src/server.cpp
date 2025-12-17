@@ -226,7 +226,6 @@ namespace Server {
 			m_observers.begin (),
 			m_observers.end (),
 			[this, &message](pollfd poll) {
-				Log ("sending message to #1#", poll.fd);
 				this->Send (poll.fd, message);
 			}
 		);
@@ -252,13 +251,13 @@ namespace Server {
 		
 
 		if (send (client, header_bytes, 4, MSG_NOSIGNAL) <= 0) {
-			Log ("{C:RED}Error: couldn't send header to client");
+			Log ("{C:RED}Error: couldn't send header to client #1#", client);
 			Log ("{C:RED}> #1#", std::strerror (errno));
 			return;
 		}
 
 		if (send (client, message.c_str (), message.length (), MSG_NOSIGNAL) <= 0) {
-			Log ("{C:RED}Error: couldn't send body to client");
+			Log ("{C:RED}Error: couldn't send body to client #1#", client);
 			Log ("{C:RED}> #1#", std::strerror (errno));
 			return;
 		}

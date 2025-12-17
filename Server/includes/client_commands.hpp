@@ -21,6 +21,7 @@ static inline void vote_begin (const std::vector<std::string> & args, CommandCon
 	}
 
 	context.vote.started = true;
+	context.vote.candidates.clear ();
 	std::copy (args.begin (), args.end (), back_inserter (context.vote.candidates));
 }
 
@@ -54,17 +55,8 @@ static inline void vote_end (const std::vector<std::string> & args, CommandConte
 	for (int i = 0; i < sum.size (); ++i) {
 		sum[i].set_str ("1", 10);
 		for (auto & [id, client] : context.clients) {
-			if (client.voted) {
-				Server::Log ("#1# #2# #3# #4#", client.aproved, client.voted, client.vote[i].get_str (), sum[i].get_str ());
-			}
-
 			if (client.voted && client.aproved) {
 				sum[i] = paillier::add (sum[i], client.vote[i], context.vote.pallier);
-				Server::Log ("{C:YELLOW} #1#", sum[i].get_str ());
-			}
-
-			else if (!client.aproved) {
-				Server::Log ("not aproved, failed zkp");
 			}
 		}
 	}
@@ -131,15 +123,6 @@ static inline void client_login (const std::vector<std::string> & args, CommandC
 	context.server.Send (context.client.socket, "RETURN CODE LOGIN O0");
 	context.client.status = ConnectionState::FULL_AUTH;
 	Server::Log ("[Client {C:GOLD}#1#{}] Authenticated.", context.client.socket);
-}
-
-static inline void a_client_vote_begin (const std::vector<std::string> & args, CommandContext & context) {
-	context.vote.candidates = args;
-	context.vote.started = true;
-
-	for (const auto & c : context.vote.candidates) {
-		Server::Log ("#1#", c);
-	}
 }
 
 static inline void client_send_key (const std::vector<std::string> & args, CommandContext & context) {
@@ -281,8 +264,6 @@ static inline void client_send_zkp (const std::vector<std::string> & args, Comma
 	context.client.proofs[index].z_values.resize (n);
 	context.client.proofs[index].e_values.resize (n);
 	context.client.proofs[index].valid_values.resize (n);
-
-	Server::Log ("nombres d'args = #1#", args.size ());
 
 	for (int i = 0; i < n; ++i) {
 		if (context.client.proofs[index].a_values[i].set_str (args[2 + 0 * n + i], 10) != 0) {

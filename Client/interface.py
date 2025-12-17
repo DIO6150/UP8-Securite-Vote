@@ -14,10 +14,11 @@ def ouvrir_fenetre_principale():
     def update():
         global info
         info = client.read()
+        
         if(info != "E"):
            func()
-        else:
-           fenetre_principale.after(500, update)
+
+        fenetre_principale.after(500, update)
 
     fenetre_principale = tk.Tk()
     fenetre_principale.title("vote")
